@@ -1,0 +1,7 @@
+.vscode/
+resources/*
+src/.DS_Store
+resources/.DS_Store
+resources/*.obj
+resources/*.mtl
+*.exe

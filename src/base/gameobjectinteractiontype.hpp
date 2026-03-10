@@ -1,0 +1,13 @@
+#ifndef GAMEOBJECTINTERACTIONTYPE_HPP
+#define GAMEOBJECTINTERACTIONTYPE_HPP
+
+enum GameObjectInteractionType {
+    DIALOGUE,
+    HOLD_ITEM,
+    THROW_ITEM,
+    DROP_ITEM,
+    COLLECT_ITEM,
+    TOGGLE // door?
+};
+
+#endif

@@ -1,0 +1,14 @@
+#ifndef SPRITEANIMATIONTYPE_HPP
+#define SPRITEANIMATIONTYPE_HPP
+
+enum SpriteAnimationType {
+    LOOP,
+    ONCE_STOP,
+    ONE_SHOT,
+    LOOP_REPEAT_SEGMENT,
+    REVERSE_STOP,
+    REVERSE_DONE,
+    REVERSE_LOOP
+};
+
+#endif

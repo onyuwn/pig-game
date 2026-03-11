@@ -7,7 +7,8 @@ enum GameObjectInteractionType {
     THROW_ITEM,
     DROP_ITEM,
     COLLECT_ITEM,
-    TOGGLE // door?
+    TOGGLE, // door?
+    HIT
 };
 
 #endif

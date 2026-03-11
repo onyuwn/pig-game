@@ -17,7 +17,7 @@ class RigidBodyEntity {
         btRigidBody* entityRigidBody;
         RigidBodyEntity(Model& entityModel, btVector3 defaultPos = btVector3(0,1,0), CollisionShapeType collisionShapeType = BOX, float mass = 1.0, btVector3 boxShape = btVector3(1.0, 1.0, 1.0));
         //~RigidBodyEntity();
-        void render(Shader &shader, glm::mat4 model = glm::mat4(1.0), bool positionOverride = false);
+        glm::mat4 render(glm::mat4 model = glm::mat4(1.0), bool positionOverride = false);
         void activateInteraction();
         void initialize(glm::mat4 model = glm::mat4(1.0));
         void addToWorld(btDynamicsWorld * world);

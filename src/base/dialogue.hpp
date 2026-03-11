@@ -6,6 +6,7 @@
 #include <string>
 #include <glm/glm.hpp>
 #include "spriteanimationtype.hpp"
+#include <memory>
 
 class DialogueElement {
     public:

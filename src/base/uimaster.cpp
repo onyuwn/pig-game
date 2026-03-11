@@ -1,6 +1,6 @@
 #include "uimaster.hpp"
 
-UIMaster::UIMaster(unsigned int scrWidth, unsigned int scrHeight) {
+UIMaster::UIMaster(unsigned int scrWidth, unsigned int scrHeight) : gamePaused(false), dialogShowing(false) {
     this->scrWidth = scrWidth;
     this->scrHeight = scrHeight;
     //this->pauseMenuPanel = std::make_shared<UIPanel>(scrWidth, scrHeight, 0, 0, scrWidth, scrHeight, glm::vec4(1.0,0.0,0.0,.5));
@@ -12,6 +12,7 @@ void UIMaster::render(float deltaTime, float curTime) {
     for(int i = 0; i < this->textElements.size(); i++) { // TODO: store text element pos in members
         this->textElements[i]->render(1, glm::vec3(1.0, 0.0, 0.0), curTime);
     }
+
     // finally show any urgent dialog:
     if(this->dialogShowing) {
         this->currentDialog->render(200, 200, 1, glm::vec3(1.0, 0, 0), deltaTime, glm::vec2(120,100), curTime);

@@ -9,10 +9,12 @@ uniform sampler2D texture_diffuse1;
 uniform vec3 lightPos;  
 uniform vec3 lightColor;
 uniform vec3 playerPos;
+uniform float hitTime;
+uniform float sceneTime;
 
 void main()
 {   
-    float ambientStrength = 0.5;
+    float ambientStrength = 0.25;
     vec3 ambient = ambientStrength * lightColor;
     vec4 objectColor = texture(texture_diffuse1, TexCoords);
 
@@ -24,6 +26,9 @@ void main()
     vec3 lightDir = normalize(lightPos - fragPos); 
     float diff = max(dot(norm, lightDir), 0.0);
     vec3 diffuse = diff * lightColor;
+    if(sceneTime - hitTime > 0.0) {
+        diffuse += vec3(1.0, 0.0, 0.0) * vec3(1 / pow(sceneTime - hitTime, 2.0));
+    }
     vec3 result = (ambient + diffuse) * objectColor.xyz;
 
     FragColor = vec4(result, objectColor.a);

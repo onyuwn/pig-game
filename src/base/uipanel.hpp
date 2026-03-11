@@ -8,6 +8,7 @@
 #include <glm/glm.hpp>
 #include <vector>
 #include "stb_image.h"
+#include <memory>
 
 class UIPanel : public UIElement {
     public:

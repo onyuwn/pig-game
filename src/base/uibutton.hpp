@@ -8,6 +8,7 @@
 #include <string>
 #include <glm/glm.hpp>
 #include <vector>
+#include <memory>
 
 class UIButton : public UIElement {
     public:

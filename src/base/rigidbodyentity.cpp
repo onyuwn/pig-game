@@ -108,8 +108,7 @@ glm::vec3 RigidBodyEntity::getPos() {
     return glm::vec3(curPos.x(), curPos.y(), curPos.z());
 }
 
-void RigidBodyEntity::render(Shader &shader, glm::mat4 model, bool positionOverride) {
-    shader.use();
+glm::mat4 RigidBodyEntity::render(glm::mat4 model, bool positionOverride) {
     if(positionOverride) {
         this->entityRigidBody->activate(false);
     } else {
@@ -123,8 +122,7 @@ void RigidBodyEntity::render(Shader &shader, glm::mat4 model, bool positionOverr
         model = model * rotationMatrix;
         finalModelMatrix = model;
     }
-    shader.setMat4("model", model);
-    this->entityModel.draw(shader);
+    return model;
 }
 
 glm::mat4 RigidBodyEntity::getFinalModelMatrix() {

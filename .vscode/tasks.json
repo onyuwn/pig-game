@@ -3,7 +3,7 @@
 	"tasks": [
 		{
 			"type": "cppbuild",
-			"label": "opengl build",
+			"label": "opengl MAC",
 			"command": "/usr/bin/g++",
 			"args": [
 				"-g",
@@ -35,26 +35,24 @@
 		},
 		{
 			"type": "cppbuild",
-			"label": "opengl build",
-			"command": "/usr/bin/g++",
+			"label": "opengl WINDOWS",
+			"command": "C:\\msys64\\mingw64\\bin\\g++.exe",
 			"args": [
 				"-g",
-				"-std=c++14",
-				"-I${workspaceFolder}/include",
-				"-L${workspaceFolder}/lib",
-				"${workspaceFolder}/src/base/*.cpp",
-				"${workspaceFolder}/src/*.cpp",
-				"${workspaceFolder}/src/base/glad.c",
-				"${workspaceFolder}/lib/libglfw.3.dylib",
-				"${workspaceFolder}/lib/libassimp.5.4.3.dylib",
+				"-std=c++17",
+				"-I${workspaceFolder}\\include",
+				"-L${workspaceFolder}\\lib",
+				"${workspaceFolder}\\src\\base\\*.cpp",
+				"${workspaceFolder}\\src\\*.cpp",
+				"${workspaceFolder}\\src\\base\\glad.c",
+				"${workspaceFolder}\\lib\\glfw3.lib",
+				"-lassimp",
 				"-lBulletDynamics",
 				"-lBulletCollision",
-				"-lLinearMath",
+				"-lLinearMath",	
 				"-lfreetype",
 				"-o",
-				"${workspaceFolder}/main.exe",
-				"-framework",
-				"OpenGL"
+				"${workspaceFolder}\\main.exe"
 			],
 			"options": {
 				"cwd": "${workspaceFolder}"
@@ -63,7 +61,44 @@
 				"$gcc"
 			],
 			"group": "build",
-			"detail": "compiler: /usr/bin/g++"
-		}
+			"detail": "compiler: C:\\msys64\\mingw64\\bin\\g++.exe"
+		},
+		{
+			"type": "cppbuild",
+			"label": "cmake CONFIGURE",
+			"command": "cmake",
+			"args": [
+				"-B build",
+				"-S .",
+				"-DCMAKE_TOOLCHAIN_FILE=~\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake",
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build",
+			"detail": "CMAKE"
+		},
+		{
+			"type": "cppbuild",
+			"label": "cmake BUILD",
+			"command": "cmake",
+			"args": [
+				"--build",
+				"build",
+				"--config",
+				"Debug",
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build",
+			"detail": "CMAKE"
+		},
 	]
 }

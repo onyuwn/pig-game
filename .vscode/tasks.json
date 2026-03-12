@@ -2,7 +2,7 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"type": "cppbuild",
+			"type": "process",
 			"label": "opengl MAC",
 			"command": "/usr/bin/g++",
 			"args": [
@@ -34,7 +34,7 @@
 			"detail": "compiler: /usr/bin/g++"
 		},
 		{
-			"type": "cppbuild",
+			"type": "process",
 			"label": "opengl WINDOWS",
 			"command": "C:\\msys64\\mingw64\\bin\\g++.exe",
 			"args": [
@@ -64,7 +64,7 @@
 			"detail": "compiler: C:\\msys64\\mingw64\\bin\\g++.exe"
 		},
 		{
-			"type": "cppbuild",
+			"type": "process",
 			"label": "cmake CONFIGURE",
 			"command": "cmake",
 			"args": [
@@ -82,7 +82,25 @@
 			"detail": "CMAKE"
 		},
 		{
-			"type": "cppbuild",
+			"type": "process",
+			"label": "cmake CONFIGURE OSX",
+			"command": "cmake",
+			"args": [
+				"-B build",
+				"-S .",
+				"-DCMAKE_TOOLCHAIN_FILE=~/vcpkg/scripts/buildsystems/vcpkg.cmake",
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build",
+			"detail": "CMAKE"
+		},
+		{
+			"type": "process",
 			"label": "cmake BUILD",
 			"command": "cmake",
 			"args": [

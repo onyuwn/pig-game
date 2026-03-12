@@ -11,6 +11,18 @@
             "cwd": "${workspaceFolder}",
             "environment": [],
             "console": "integratedTerminal"
-        }
+        },
+        {
+            "name": "PIGGAME OSX DBG",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/PIGGAME",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb"
+        },
     ]
 }

@@ -34,3 +34,9 @@ target_link_libraries(PIGGAME PRIVATE
     BulletCollision
     LinearMath
 )
+
+file(COPY ${CMAKE_SOURCE_DIR}/src/shaders
+     DESTINATION src/)
+
+file(COPY ${CMAKE_SOURCE_DIR}/resources
+     DESTINATION ${CMAKE_BINARY_DIR})

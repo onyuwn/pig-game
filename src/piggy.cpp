@@ -20,10 +20,18 @@ void Piggy::initialize() {
     this->shatteredPigModel = std::make_shared<Model>((char*)"resources/pig/pigshatter4.gltf");
     this->piggyShader = std::make_shared<Shader>("src/shaders/basic.vs", "src/shaders/basic.fs");
     this->piggyRigidBody = new RigidBodyEntity(this->piggyModel, btVector3(this->initialPosition.x,this->initialPosition.y,this->initialPosition.z), BOX, 0.5f, btVector3(1.0, 1.0, 1.0), this->scale);
-    auto& shatterings = this->shatteredPigModel->getMeshes();
-    for(int i = 0; i < shatterings.size(); i++) {
-        Mesh *curMesh = &shatterings[i];
-        std::shared_ptr<RigidBodyEntity> pigPiece = std::make_shared<RigidBodyEntity>(curMesh, btVector3(this->initialPosition.x,this->initialPosition.y,this->initialPosition.z), BOX, .5f, btVector3(1.0, 1.0, 1.0), this->scale);
+    auto shatterings = this->shatteredPigModel->getMeshes();
+    for(auto& mesh : shatterings) {
+        auto pigPiece = std::make_shared<RigidBodyEntity>(
+            &mesh,
+            btVector3(this->initialPosition.x,
+                    this->initialPosition.y,
+                    this->initialPosition.z),
+            BOX,
+            0.5f,
+            btVector3(1.0, 1.0, 1.0),
+            this->scale);
+
         pigPiece->initialize(this->modelMatrix);
         this->shatteredPigRigidBodies.push_back(pigPiece);
     }

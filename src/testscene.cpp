@@ -36,7 +36,7 @@ void TestScene::render(float deltaTime, float curTime, GLFWwindow *window) {
         }
 
         this->terrain->render(*this->sceneShader);
-
+        this->ui.gamePaused = paused;
         this->ui.render(deltaTime, curTime);
         // this->skybox->render(glm::mat4(glm::mat3(view)), projection);
         //this->postProcessor->render(curTime);

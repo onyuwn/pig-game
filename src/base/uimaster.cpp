@@ -4,7 +4,7 @@ UIMaster::UIMaster(unsigned int scrWidth, unsigned int scrHeight) : gamePaused(f
     this->scrWidth = scrWidth;
     this->scrHeight = scrHeight;
     //this->pauseMenuPanel = std::make_shared<UIPanel>(scrWidth, scrHeight, 0, 0, scrWidth, scrHeight, glm::vec4(1.0,0.0,0.0,.5));
-    this->pauseMenuPanel = std::make_shared<UIPanel>(scrWidth, scrHeight, 0, 0, scrWidth, scrHeight, "resources/ui/uipanel5.png");
+    this->pauseMenuPanel = std::make_shared<UIPanel>(scrWidth, scrHeight, 0, 0, scrWidth, scrHeight, "resources/floorbase.png");
 }
 
 void UIMaster::render(float deltaTime, float curTime) {
@@ -23,6 +23,7 @@ void UIMaster::render(float deltaTime, float curTime) {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         checkHover(this->mousePos.x, this->mousePos.y);
         this->pauseMenuPanel->render(deltaTime, curTime);
+        printf("OPENMENU");
     }
 }
 

@@ -11,10 +11,11 @@ uniform vec3 lightColor;
 uniform vec3 playerPos;
 uniform float hitTime;
 uniform float sceneTime;
+uniform float ambientStrength;
+uniform float opacity;
 
 void main()
 {   
-    float ambientStrength = 0.25;
     vec3 ambient = ambientStrength * lightColor;
     vec4 objectColor = texture(texture_diffuse1, TexCoords);
 
@@ -31,5 +32,5 @@ void main()
     }
     vec3 result = (ambient + diffuse) * objectColor.xyz;
 
-    FragColor = vec4(result, objectColor.a);
+    FragColor = vec4(result, opacity);
 }

@@ -10,6 +10,8 @@ out vec3 fragPos;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
+uniform float hitTime;
+uniform float sceneTime;
 
 vec3 outPos;
 

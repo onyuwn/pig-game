@@ -8,7 +8,7 @@
 
 class GameObject {
     public:
-        virtual void render(float deltaTime, glm::mat4 model = glm::mat4(1.0), glm::mat4 view = glm::mat4(1.0), glm::mat4 projection = glm::mat4(1.0), float curTime = 0.0) = 0;
+        virtual void render(float deltaTime, glm::mat4 model = glm::mat4(1.0), glm::mat4 view = glm::mat4(1.0), glm::mat4 projection = glm::mat4(1.0), float curTime = 0.0, glm::vec3 sceneLightPos = glm::vec3(0.0)) = 0;
         virtual void initialize() = 0;
         virtual GameObjectInteractionType getInteraction() = 0;
         //maybe rename this to overridepos
@@ -19,6 +19,9 @@ class GameObject {
         virtual void toggleState() = 0; // door
         virtual std::string getHelpText() = 0;
         bool selected = false;
+        virtual void setScale(float scale) = 0;
+    private:
+        float scale;
 };
 
 #endif

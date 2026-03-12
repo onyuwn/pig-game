@@ -1,14 +1,30 @@
 #include "rigidbodyentity.hpp"
 
-RigidBodyEntity::RigidBodyEntity(Model& entityModel, btVector3 defaultPos, CollisionShapeType collisionShapeType, float mass, btVector3 boxShape) : entityModel(entityModel), collisionShapeType(collisionShapeType) {
+RigidBodyEntity::RigidBodyEntity(std::shared_ptr<Model> entityModel,
+    btVector3 defaultPos, CollisionShapeType collisionShapeType, float mass, btVector3 boxShape, float scale)
+     : entityModel(entityModel), collisionShapeType(collisionShapeType), scale(scale) {
     // build collision shape (box for rn)
     this->defaultPos = defaultPos;
     this->mass = mass;
     this->initialized = false;
     this->boundingBox = boxShape;
+    this->entityMesh=nullptr;
     std::cout << "init rigid body" << std::endl;
     // create rigid body
 } 
+
+RigidBodyEntity::RigidBodyEntity(Mesh* entityMesh, btVector3 defaultPos,
+    CollisionShapeType collisionShapeType, float mass, btVector3 boxShape, float scale)
+    : entityMesh(entityMesh), collisionShapeType(collisionShapeType), scale(scale) {
+    // build collision shape (box for rn)
+    this->defaultPos = defaultPos;
+    this->mass = mass;
+    this->initialized = false;
+    this->boundingBox = boxShape;
+    this->entityModel = nullptr;
+    std::cout << "init rigid body MESH" << std::endl;
+    // create rigid body
+}
 
 // RigidBodyEntity::~RigidBodyEntity() {
 //     if (this->entityRigidBody) {
@@ -22,17 +38,17 @@ RigidBodyEntity::RigidBodyEntity(Model& entityModel, btVector3 defaultPos, Colli
 
 void RigidBodyEntity::initialize(glm::mat4 model) {
     glm::vec3 meshOrigin(0.0f, 0.0f, 0.0f);
-    if(this->collisionShapeType == BOX) {
+    if(this->collisionShapeType == BOX && this->entityModel != nullptr) {
         glm::vec3 minVertex(FLT_MAX, FLT_MAX, FLT_MAX);
         glm::vec3 maxVertex(-FLT_MAX, -FLT_MAX, -FLT_MAX);
 
-        std::vector<Mesh> entityMeshes = this->entityModel.getMeshes();  // Get mesh data
+        std::vector<Mesh> entityMeshes = this->entityModel->getMeshes();  // Get mesh data
         // Iterate through all vertices in the mesh to calculate the bounding box
         for (int h = 0; h < entityMeshes.size(); h++) {
             Mesh terrainMesh = entityMeshes[h];
             
             for (int i = 0; i < terrainMesh.vertices.size(); i++) {
-                glm::vec3 vertex = terrainMesh.vertices[i].Position;
+                glm::vec3 vertex = terrainMesh.vertices[i].Position * this->scale;
                 // Update the bounding box limits
                 minVertex = glm::min(minVertex, vertex);
                 maxVertex = glm::max(maxVertex, vertex);
@@ -48,14 +64,34 @@ void RigidBodyEntity::initialize(glm::mat4 model) {
         btVector3 halfExtents(size.x * 0.5f, size.y * 0.5f, size.z * 0.5f);
         btBoxShape* boxShape = new btBoxShape(halfExtents);
         this->entityCollisionShape = boxShape;
-    } else if(this->collisionShapeType == MESH) {
-        if(!this->entityModel.isLoaded()) {
+    }else if(this->collisionShapeType == BOX && this->entityMesh != nullptr) {
+        glm::vec3 minVertex(FLT_MAX, FLT_MAX, FLT_MAX);
+        glm::vec3 maxVertex(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+
+        for (int i = 0; i < this->entityMesh->vertices.size(); i++) {
+            glm::vec3 vertex = this->entityMesh->vertices[i].Position * this->scale;
+            // Update the bounding box limits
+            minVertex = glm::min(minVertex, vertex);
+            maxVertex = glm::max(maxVertex, vertex);
+        }
+
+        meshOrigin = (minVertex + maxVertex) * 0.5f;
+        printf("meshorigin: %f, %f, %f\n", meshOrigin.x, meshOrigin.y, meshOrigin.z);
+        // Calculate the size (width, height, depth) of the bounding box
+        glm::vec3 size = maxVertex - minVertex;
+
+        // Create the btBoxShape using the half-extents
+        btVector3 halfExtents(size.x * 0.5f, size.y * 0.5f, size.z * 0.5f);
+        btBoxShape* boxShape = new btBoxShape(halfExtents);
+        this->entityCollisionShape = boxShape;
+    } else if(this->collisionShapeType == MESH && this->entityModel != nullptr) {
+        if(!this->entityModel->isLoaded()) {
             std::cout << "entity model mesh not loaded" << std::endl;
             return;
         }
 
         btConvexHullShape* convexHullShape = new btConvexHullShape();
-        std::vector<Mesh> entityMeshes = this->entityModel.getMeshes();
+        std::vector<Mesh> entityMeshes = this->entityModel->getMeshes();
         for(int h = 0; h < entityMeshes.size(); h++) {
             Mesh terrainMesh = entityMeshes[h];
             for(int i = 0; i < terrainMesh.indices.size(); i+=3) {
@@ -72,26 +108,28 @@ void RigidBodyEntity::initialize(glm::mat4 model) {
         this->entityCollisionShape = convexHullShape;
     }
 
-    glm::quat rotationQuat = glm::quat_cast(model);
-    btQuaternion btRot(rotationQuat.x, rotationQuat.y, rotationQuat.z, rotationQuat.w);
+    if(this->entityCollisionShape != nullptr) {
+        glm::quat rotationQuat = glm::quat_cast(model);
+        btQuaternion btRot(rotationQuat.x, rotationQuat.y, rotationQuat.z, rotationQuat.w);
 
 
-    btTransform startTransform;
-    startTransform.setIdentity();
-    startTransform.setOrigin(defaultPos);
-    startTransform.setRotation(btRot);
+        btTransform startTransform;
+        startTransform.setIdentity();
+        startTransform.setOrigin(defaultPos);
+        startTransform.setRotation(btRot);
 
-    btDefaultMotionState* motionstate = new btDefaultMotionState(startTransform);
+        btDefaultMotionState* motionstate = new btDefaultMotionState(startTransform);
 
-    btRigidBody::btRigidBodyConstructionInfo rigidBodyCI(
-        mass,
-        motionstate,
-        this->entityCollisionShape,
-        btVector3(0,0,0)
-    );
-    this->entityRigidBody = new btRigidBody(rigidBodyCI);
-    this->entityRigidBody->activate();
-    this->initialized = true;
+        btRigidBody::btRigidBodyConstructionInfo rigidBodyCI(
+            mass,
+            motionstate,
+            this->entityCollisionShape,
+            btVector3(0,0,0)
+        );
+        this->entityRigidBody = new btRigidBody(rigidBodyCI);
+        this->entityRigidBody->activate();
+        this->initialized = true;
+    }
 }
 
 void RigidBodyEntity::addToWorld(btDynamicsWorld * world) {

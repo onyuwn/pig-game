@@ -12,7 +12,7 @@ void TestScene::render(float deltaTime, float curTime, GLFWwindow *window) {
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-        this->world->stepSimulation(deltaTime * 3.0f, 7);
+        this->world->stepSimulation(deltaTime * 5.0f, 7);
         this->player->UpdatePlayer(curTime, deltaTime, window, paused);
 
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom * 2.0f), (float)800 / (float)600, 0.1f, 100.0f);
@@ -21,6 +21,8 @@ void TestScene::render(float deltaTime, float curTime, GLFWwindow *window) {
         this->sceneShader->use();
         sceneShader->setMat4("projection", projection);
         sceneShader->setMat4("view", view);
+        sceneShader->setFloat("amgientStrength", .25);
+        sceneShader->setFloat("opacity", 1.0);
         this->sceneShader->setVec3("lightPos", this->player->getPlayerHandPos());
 
         this->sceneShader->setVec3("lightColor", glm::vec3(1.0, 1.0, 1.0));
@@ -30,7 +32,7 @@ void TestScene::render(float deltaTime, float curTime, GLFWwindow *window) {
         sceneShader->setMat4("model", model);
         this->player->render(curTime, deltaTime);
         for(int i = 0; i < this->gameObjects.size(); i++) {
-            this->gameObjects[i]->render(deltaTime, model, view, projection, curTime);
+            this->gameObjects[i]->render(deltaTime, model, view, projection, curTime, this->player->getPlayerHandPos());
         }
 
         this->terrain->render(*this->sceneShader);
@@ -57,8 +59,8 @@ void TestScene::initialize(std::function<void(float, std::string)> progressCallb
     stbi_set_flip_vertically_on_load(false);
     world->setGravity(btVector3(0,-9.81f,0));
     progressCallback(.25f, "initializing terrain...");
-    this->sceneTerrainModel = std::make_shared<Model>((char*)"resources/buildings/test/testhall.obj");
-    std::shared_ptr<GameObject> piggyGameObject = std::make_shared<Piggy>("piggy");
+    this->sceneTerrainModel = std::make_shared<Model>((char*)"resources/testfloor.obj");
+    std::shared_ptr<GameObject> piggyGameObject = std::make_shared<Piggy>("piggy", glm::vec3(0, 8, -20), 2.0);
     piggyGameObject->initialize();
     if (auto piggyPtr = std::dynamic_pointer_cast<Piggy>(piggyGameObject)) {
         piggyPtr->addToWorld(this->world);

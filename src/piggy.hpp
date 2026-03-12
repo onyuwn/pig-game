@@ -21,10 +21,13 @@ class Piggy : public GameObject {
         int lineIdx;
         bool initialized;
         RigidBodyEntity* piggyRigidBody;
-        RigidBodyEntity* shatteredPigRigidBody;
+        btDynamicsWorld* physWorld;
+        std::vector<std::shared_ptr<RigidBodyEntity>> shatteredPigRigidBodies;
         glm::mat4 modelMatrix;
-        Piggy(std::string name);
-        void render(float deltaTime, glm::mat4 model = glm::mat4(1.0), glm::mat4 view = glm::mat4(1.0), glm::mat4 projection = glm::mat4(1.0), float curTime = 0.0) override;
+        Piggy(std::string name, glm::vec3 position, float scale);
+        void render(float deltaTime, glm::mat4 model = glm::mat4(1.0),
+                    glm::mat4 view = glm::mat4(1.0), glm::mat4 projection = glm::mat4(1.0),
+                    float curTime = 0.0, glm::vec3 sceneLightPos = glm::vec3(1.0)) override;
         GameObjectInteractionType getInteraction() override;
         glm::vec3 getPos();
         void setPos(std::function<glm::vec3()> posCallback) override;
@@ -35,13 +38,19 @@ class Piggy : public GameObject {
         void toggleState() override;
         int getHealth();
         void takeHit(int dmg);
+        void setScale(float scale);
         std::string getHelpText() override;
     private:
         int health;
+        bool pigExploded;
+        int shatterPiecesInPhysWorld = 0;
         std::shared_ptr<Model> piggyModel;
         std::shared_ptr<Model> shatteredPigModel;
+        std::vector<std::shared_ptr<Mesh>> shatteredPigMeshPieces;
         std::shared_ptr<Shader> piggyShader;
         std::function<glm::vec3()> positionCallback;
+        float scale = 1.0;
+        glm::vec3 initialPosition;
 };
 
 #endif

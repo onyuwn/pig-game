@@ -5,7 +5,7 @@ Player::Player(Camera &camera, btDiscreteDynamicsWorld *world,
                 : camera(camera), uiCallback(uiCallback), physDebugOn(physDebugOn),
                   playerModelPath(playerModelPath),
                   pauseRequested(false),
-                  controlsDisabled(false), itemInHand(false) {
+                  controlsDisabled(false), itemInHand(false), name("player") {
     this->camera = camera;
     this->world = world;
         // build collision shape (box for rn)
@@ -13,6 +13,7 @@ Player::Player(Camera &camera, btDiscreteDynamicsWorld *world,
     // create rigid body
     this->initialized = false;
     this->uiCallback = uiCallback;
+    this->name="player";
 }
 
 void Player::initialize() {
@@ -29,12 +30,14 @@ void Player::initialize() {
         1,
         motionstate,
         this->playerCollisionShape,
-        btVector3(0,0,0)
+        btVector3(0,2,0)
     );
     this->playerRigidBody = new btRigidBody(rigidBodyCI);
     this->playerRigidBody->activate(true);
     this->playerRigidBody->setFriction(.5);
     this->playerRigidBody->setDamping(.5f, 2.0f);
+    this->name="player";
+    this->playerRigidBody->setUserPointer(this);
     this->initialized=true;
 
     this->playerShader = std::make_shared<Shader>("src/shaders/superbasic.vs", "src/shaders/superbasic.fs");
@@ -297,4 +300,44 @@ bool Player::isAlive() {
 
 bool Player::isControlDisabled() {
     return this->controlsDisabled;
+}
+
+void Player::render(float deltaTime, glm::mat4 model, glm::mat4 view, glm::mat4 projection, float curTime, glm::vec3 sceneLightPos) {
+
+}
+
+void Player::setPos(std::function<glm::vec3()> posCallback) {
+
+}
+
+void Player::applyForce(glm::vec3) {
+
+}
+
+void Player::takeHit(int dmg) {
+
+}
+
+void Player::setScale(float scale) {
+
+}
+
+void Player::toggleRigidBody() {
+
+}
+
+void Player::toggleState() {
+
+}
+
+std::string Player::getHelpText() {
+    return "player";
+}
+
+glm::vec3 Player::getForward() {
+    return this->camera.Front;
+}
+
+GameObjectInteractionType Player::getInteraction() {
+    return HIT;
 }

@@ -10,6 +10,8 @@
 #include "base/collisionshapetype.hpp"
 #include "base/gameobject.hpp"
 #include "base/gameobjectinteractiontype.hpp"
+#include "base/player.hpp"
+#include <typeinfo>
 
 class Piggy : public GameObject {
     public:
@@ -39,7 +41,12 @@ class Piggy : public GameObject {
         int getHealth();
         void takeHit(int dmg);
         void setScale(float scale);
+        bool playerSpotted(glm::vec3 forward);
         std::string getHelpText() override;
+        bool shouldBeDestroyed;
+        glm::vec3 getForward();
+        void setRotation(glm::vec3 newRotation);
+        glm::vec3 rotation;
     private:
         int health;
         bool pigExploded;
@@ -51,6 +58,9 @@ class Piggy : public GameObject {
         std::function<glm::vec3()> positionCallback;
         float scale = 1.0;
         glm::vec3 initialPosition;
+        glm::mat4 piggyModelMatrix;
+        Player* player;
+        float lastPlayerSpottedTime;
 };
 
 #endif

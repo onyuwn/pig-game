@@ -23,7 +23,6 @@ void UIMaster::render(float deltaTime, float curTime) {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         checkHover(this->mousePos.x, this->mousePos.y);
         this->pauseMenuPanel->render(deltaTime, curTime);
-        printf("OPENMENU");
     }
 }
 

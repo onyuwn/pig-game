@@ -14,6 +14,10 @@ uniform float sceneTime;
 uniform float ambientStrength;
 uniform float opacity;
 
+vec2 random2(vec2 p) {
+    return fract(sin(vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3))))*43758.5453);
+}
+
 void main()
 {   
     vec3 ambient = ambientStrength * lightColor;
@@ -31,6 +35,10 @@ void main()
         diffuse += vec3(1.0, 0.0, 0.0) * vec3(1 / pow(sceneTime - hitTime, 2.0));
     }
     vec3 result = (ambient + diffuse) * objectColor.xyz;
+
+    if(opacity < 0.75) {
+        result *= (random2(TexCoords * opacity).x);
+    }
 
     FragColor = vec4(result, opacity);
 }

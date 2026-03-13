@@ -2,7 +2,7 @@
 
 TestScene::TestScene(
     std::string name,
-    Camera &camera, UIMaster &ui) : initialized(false), camera(camera), ui(ui), physDebugOn(false) {
+    Camera &camera, UIMaster &ui) : initialized(false), camera(camera), ui(ui), physDebugOn(false), paused(false) {
 
 }
 
@@ -13,7 +13,7 @@ void TestScene::render(float deltaTime, float curTime, GLFWwindow *window) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         this->world->stepSimulation(deltaTime * 5.0f, 7);
-        this->player->UpdatePlayer(curTime, deltaTime, window, paused);
+        this->player->UpdatePlayer(curTime, deltaTime, window, this->paused);
 
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom * 2.0f), (float)800 / (float)600, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix(player->getPlayerPos() + glm::vec3(0,1,0));
@@ -32,11 +32,13 @@ void TestScene::render(float deltaTime, float curTime, GLFWwindow *window) {
         sceneShader->setMat4("model", model);
         this->player->render(curTime, deltaTime);
         for(int i = 0; i < this->gameObjects.size(); i++) {
-            this->gameObjects[i]->render(deltaTime, model, view, projection, curTime, this->player->getPlayerHandPos());
+            if(!this->gameObjects[i]->shouldBeDestroyed) {
+                this->gameObjects[i]->render(deltaTime, model, view, projection, curTime, this->player->getPlayerHandPos());
+            }
         }
 
         this->terrain->render(*this->sceneShader);
-        this->ui.gamePaused = paused;
+        this->ui.gamePaused = this->paused;
         this->ui.render(deltaTime, curTime);
         // this->skybox->render(glm::mat4(glm::mat3(view)), projection);
         //this->postProcessor->render(curTime);
@@ -48,6 +50,7 @@ void TestScene::render(float deltaTime, float curTime, GLFWwindow *window) {
 void TestScene::initialize(std::function<void(float, std::string)> progressCallback) {
     progressCallback(.25f, "loading shaders...");
     this->sceneShader = std::make_shared<Shader>("src/shaders/basic.vs", "src/shaders/basic.fs");
+    this->paused = false;
     progressCallback(.25f, "initializing physics...");
     btBroadphaseInterface* broadphase = new btDbvtBroadphase();
     btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();

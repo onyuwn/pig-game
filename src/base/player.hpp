@@ -16,7 +16,7 @@
 #include "gameobject.hpp"
 #include "gameobjectinteractiontype.hpp"
 
-class Player {
+class Player : GameObject {
     public:
         btCollisionShape* playerCollisionShape;
         btRigidBody* playerRigidBody;
@@ -36,6 +36,21 @@ class Player {
         bool isControlDisabled();
         void render(float curTime, float deltaTime);
         void pollInteractables();
+        
+        void render(float deltaTime, glm::mat4 model = glm::mat4(1.0), glm::mat4 view = glm::mat4(1.0), glm::mat4 projection = glm::mat4(1.0), float curTime = 0.0, glm::vec3 sceneLightPos = glm::vec3(0.0));
+        void setPos(std::function<glm::vec3()> posCallback);
+        void applyForce(glm::vec3 force);
+        void takeHit(int dmg);
+        void setScale(float scale);
+        void toggleRigidBody();
+        void toggleState();
+        std::string getHelpText();
+        GameObjectInteractionType getInteraction();
+        bool selected = false;
+        bool shouldBeDestroyed = false;
+        glm::vec3 getForward();
+        glm::vec3 rotation;
+        std::string name;
     private:
         Camera &camera;
         btDiscreteDynamicsWorld *world;

@@ -20,6 +20,10 @@ class GameObject {
         virtual std::string getHelpText() = 0;
         bool selected = false;
         virtual void setScale(float scale) = 0;
+        bool shouldBeDestroyed = false;
+        virtual glm::vec3 getForward() = 0;
+        glm::vec3 rotation;
+        std::string name;
     private:
         float scale;
 };

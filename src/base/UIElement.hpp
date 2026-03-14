@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "uielementanchortype.hpp"
 
 class UIElement { // maybe need to make ui mesh class but we will see. maybe just change buffer type in shader to vec3
     public:
@@ -21,6 +22,7 @@ class UIElement { // maybe need to make ui mesh class but we will see. maybe jus
         int yPos;
         int windowWidth;
         int windowHeight;
+        UIElementAnchorType anchorType;
 };
 
 #endif

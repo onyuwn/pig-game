@@ -22,12 +22,15 @@ class UIMaster {
         void checkHover(float mouseX, float mouseY);
         void setMousePos(double mouseX, double mouseY);
         void updateWindowSize(int newWindowWidth, int newWindowHeight);
+        void addPanel(UIPanel* panel);
+        void addImagePanel(int width, int height, int xPos, int yPos, std::string imagePath);
         bool gamePaused;
     private:
         unsigned int scrWidth;
         unsigned int scrHeight;
         std::vector<UIElement*> elements;
         std::vector<UITextElement*> textElements;
+        std::vector<UIPanel*> panels;
         std::shared_ptr<UISpriteAnim> loadingAnim;
         std::shared_ptr<DialogueElement> currentDialog;
         std::shared_ptr<UIPanel> pauseMenuPanel;

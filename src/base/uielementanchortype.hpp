@@ -1,0 +1,16 @@
+#ifndef UIELEMENTANCHORTYPE_HPP
+#define UIELEMENTANCHORTYPE_HPP
+
+enum UIElementAnchorType {
+    TOP_LEFT,
+    TOP_CENTER,
+    TOP_RIGHT,
+    CENTER_LEFT,
+    DEAD_CENTER,
+    CENTER_RIGHT,
+    BOTTOM_LEFT,
+    BOTTOM_CENTER,
+    BOTTOM_RIGHT
+};
+
+#endif

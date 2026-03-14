@@ -83,10 +83,19 @@ void UITextElement::setText(std::string text) {
 }
 
 void UITextElement::render(float scale, glm::vec3 color, float curTime, glm::vec2 windowDims) {
-    glClear(GL_DEPTH_BUFFER_BIT); // Clears only the depth buffer otherwise skybox gets fucked up
+    glClear(GL_DEPTH_BUFFER_BIT);
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    float baseX = 0;
+    float baseY = 0;
+
+    if(this->anchorType == DEAD_CENTER) {
+        baseX = windowDims.x / 2;
+        baseY = windowDims.y / 2;
+    }
+
     this->textShader.use();
     this->textShader.setFloat("u_time", curTime);
     this->textShader.setVec2("window", windowDims);
@@ -110,7 +119,8 @@ void UITextElement::render(float scale, glm::vec3 color, float curTime, glm::vec
 
         float xpos = this->x + ch.Bearing.x * scale;
         float ypos = this->y - ((ch.Size.y * newlineCount) - ch.Bearing.y) * scale;
-
+        xpos += baseX;
+        ypos += baseY;
         float w = ch.Size.x * scale;
         float h = ch.Size.y * scale;
 
@@ -163,4 +173,8 @@ glm::vec2 UITextElement::getPos() {
 void UITextElement::setPos(glm::vec2 newPos) {
     this->x = newPos.x;
     this->y = newPos.y;
+}
+
+void UITextElement::setAnchorType(UIElementAnchorType anchorType) {
+    this->anchorType = anchorType;
 }

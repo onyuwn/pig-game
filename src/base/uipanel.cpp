@@ -72,8 +72,6 @@ void UIPanel::init(int width, int height, int xPos, int yPos, float windowWidth,
 
     this->uiMesh = std::make_shared<UIMesh>(vertices, uvs);
     this->uiPanelShader = std::make_shared<Shader>("src/shaders/uielement.vs", "src/shaders/uielement.fs");
-    UIButton *quitButton = new UIButton(200, 50, 300, 300, 800.0f, 600.0f, glm::vec4(0.0, 0.0, 1.0, 1.0), "QUIT", clickQuit);
-    this->buttons.push_back(quitButton);
 }
 
 void UIPanel::render(float deltaTime, float curTime, glm::vec2 windowDims) {
@@ -111,4 +109,10 @@ glm::vec2 UIPanel::getDims() {
 void UIPanel::updateWindowSize(int newWindowWidth, int newWindowHeight) {
     this->windowWidth = newWindowWidth;
     this->windowHeight = newWindowHeight;
+}
+
+void UIPanel::addButton(UIButton* newButton) {
+    UIButton *quitButton = new UIButton(200, 50, 0, 0, 800.0f, 600.0f, glm::vec4(0.0, 0.0, 1.0, 1.0), "QUIT", clickQuit);
+    quitButton->setAnchorType(DEAD_CENTER);
+    this->buttons.push_back(quitButton);
 }

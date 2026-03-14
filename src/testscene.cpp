@@ -56,7 +56,7 @@ void TestScene::initialize(std::function<void(float, std::string)> progressCallb
     this->sceneShader = std::make_shared<Shader>("src/shaders/basic.vs", "src/shaders/basic.fs");
     this->paused = false;
     this->piggyModel = std::make_shared<Model>((char*)"resources/piggyiso.obj");
-    this->shatteredPigModel1 = std::make_shared<Model>((char*)"resources/pig/shatteredpig.gltf");
+    this->shatteredPigModel1 = std::make_shared<Model>((char*)"resources/pig/pigshatter3ahh.gltf");
     this->pigShader = std::make_shared<Shader>("src/shaders/basic.vs", "src/shaders/basic.fs");
     progressCallback(.25f, "initializing physics...");
     btBroadphaseInterface* broadphase = new btDbvtBroadphase();

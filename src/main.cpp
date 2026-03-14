@@ -103,7 +103,7 @@ int main()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     UIMaster ui(SCR_WIDTH, SCR_HEIGHT);
-    UITextElement *crosshair = new UITextElement("resources/text/Angelic Peace.ttf", "X", 48, 400, 300);
+    UITextElement *crosshair = new UITextElement("resources/text/Angelic Peace.ttf", "X", 48, 0, 0);
     ui.addTextElement(crosshair);
     float progress = 0.0f;
     TestScene *scene1 = new TestScene("scene1", camera, ui);
@@ -137,7 +137,8 @@ int main()
                 glfwPollEvents();
             });
             crosshair->setText("x");
-            crosshair->setPos(glm::vec2(400 - (crosshair->getDims().x / 2), 300 - (crosshair->getDims().y / 2)));
+            crosshair->setAnchorType(DEAD_CENTER);
+            crosshair->setPos(glm::vec2(0,0));
             initializingScene = false;
         } else {
             float currentFrame = static_cast<float>(glfwGetTime());

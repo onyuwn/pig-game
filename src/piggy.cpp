@@ -9,7 +9,7 @@ Piggy::Piggy(std::string name, glm::vec3 position, float scale,
     glm::mat4 model = glm::mat4(1.0);
     model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     this->modelMatrix = model;
-    this->health=10;
+    this->health=20;
     pigExploded = false;
     this->shatterPiecesInPhysWorld=0;
     this->scale=scale;
@@ -73,6 +73,7 @@ void Piggy::render(float deltaTime, glm::mat4 model, glm::mat4 view, glm::mat4 p
         glm::mat4 newPiggyModelMatrix = piggyRigidBody->render(glm::mat4(1.0), false);
         glm::vec4 forwardUnNormal = newPiggyModelMatrix * glm::vec4(0.0, 0.0, 1.0, 0.0);
         glm::vec3 currentForward = glm::normalize(glm::vec3(forwardUnNormal));
+        this->forward = forward;
         float angle = acos(glm::dot(currentForward, direction));
         newPiggyModelMatrix = glm::rotate(newPiggyModelMatrix, angle, glm::vec3(0,1.0,0)); // important. probably a better way to do this with lookat
         //newPiggyModelMatrix = glm::translate(newPiggyModelMatrix, this->player->getPlayerPos());
@@ -87,6 +88,7 @@ void Piggy::render(float deltaTime, glm::mat4 model, glm::mat4 view, glm::mat4 p
             glm::mat4 newPiggyModelMatrix = piggyRigidBody->render(glm::mat4(1.0), false);
             newPiggyModelMatrix = glm::rotate(newPiggyModelMatrix, this->rotation.y, glm::vec3(0,1.0,0));
             glm::vec4 forwardUnNormal = newPiggyModelMatrix * glm::vec4(0.0, 0.0, 1.0, 0.0);
+            this->forward = glm::normalize(glm::vec3(forwardUnNormal));
             bool playerSpotted = this->playerSpotted(glm::normalize(glm::vec3(forwardUnNormal)));
             if(playerSpotted && this->player != nullptr) {
                 lastPlayerSpottedTime = curTime;
@@ -116,11 +118,11 @@ void Piggy::render(float deltaTime, glm::mat4 model, glm::mat4 view, glm::mat4 p
                 newPiggyModelMatrix = glm::scale(newPiggyModelMatrix, glm::vec3(scale));
                 glm::vec3 throwingForce = glm::vec3(0.0);
                 if(i == 0) {
-                    throwingForce = glm::vec3(0, 3, 20);
+                    throwingForce = glm::vec3(0,10,0);
                 } else if(i == 1) {
-                    throwingForce = glm::vec3(0,50,0);
+                    throwingForce = -this->forward * 10.0f;
                 } else {
-                    throwingForce = glm::vec3(-20, 3, 0);
+                    throwingForce = this->forward * 10.0f;
                 }
                 btVector3 btForce = btVector3(throwingForce.x, throwingForce.y, throwingForce.z);
                 if(!pigExploded) {
@@ -210,7 +212,8 @@ bool Piggy::playerSpotted(glm::vec3 forward) {
     if(RayCallback.hasHit()) {
         this->player = (Player*)(RayCallback.m_collisionObject->getUserPointer());
         if(this->player != nullptr && this->player->name == "player") {
-            bool isAlive = player->isAlive();   
+            bool isAlive = player->isAlive(); 
+            this->player->notifySpotted();  
         } else {
             this->player = nullptr;
         }

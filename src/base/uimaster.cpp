@@ -5,12 +5,17 @@ UIMaster::UIMaster(unsigned int scrWidth, unsigned int scrHeight) : gamePaused(f
     this->scrHeight = scrHeight;
     //this->pauseMenuPanel = std::make_shared<UIPanel>(scrWidth, scrHeight, 0, 0, scrWidth, scrHeight, glm::vec4(1.0,0.0,0.0,.5));
     this->pauseMenuPanel = std::make_shared<UIPanel>(scrWidth, scrHeight, 0, 0, scrWidth, scrHeight, "resources/floorbase.png");
+    this->pauseMenuPanel->addButton(nullptr);
 }
 
 void UIMaster::render(float deltaTime, float curTime, glm::vec2 windowDims) {
     //iterate over elements and render
     for(int i = 0; i < this->textElements.size(); i++) { // TODO: store text element pos in members
         this->textElements[i]->render(1, glm::vec3(1.0, 0.0, 0.0), curTime, windowDims);
+    }
+
+    for(int i = 0; i < this->panels.size(); i++) {
+        this->panels[i]->render(deltaTime, curTime, windowDims);
     }
 
     // finally show any urgent dialog:
@@ -83,4 +88,9 @@ void UIMaster::checkHover(float mouseX, float mouseY) {
 
 void UIMaster::setMousePos(double mouseX, double mouseY) {
     this->mousePos = glm::vec2(static_cast<float>(mouseX), static_cast<float>(mouseY));
+}
+
+void UIMaster::addImagePanel(int width, int height, int xPos, int yPos, std::string imagePath) {
+    UIPanel* panel = new UIPanel(width, height, xPos, this->scrHeight - height, this->scrWidth, this->scrHeight, "resources/eyetest1.png");
+    this->panels.push_back(panel);
 }

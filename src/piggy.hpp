@@ -59,6 +59,7 @@ class Piggy : public GameObject {
         std::vector<std::shared_ptr<Mesh>> shatteredPigMeshPieces;
         std::shared_ptr<Shader> piggyShader;
         std::function<glm::vec3()> positionCallback;
+        glm::vec3 forward;
         float scale = 1.0;
         glm::vec3 initialPosition;
         glm::mat4 piggyModelMatrix;

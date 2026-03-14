@@ -21,6 +21,7 @@ class UIButton : public UIElement {
         glm::vec2 getDims() override;
         void updateWindowSize(int newWindowWidth, int newWindowHeight) override;
         void setClickEvent(void(*clickEvent)());
+        void setAnchorType(UIElementAnchorType anchorType);
         void(*click)();
         bool hovering;
         float hoverStartTime;
@@ -37,6 +38,8 @@ class UIButton : public UIElement {
         std::shared_ptr<UITextElement> buttonTextElement;
         std::shared_ptr<Shader> buttonShader;
         std::shared_ptr<UIMesh> uiMesh;
+        UIElementAnchorType anchorType;
+        glm::vec2 lastWindowDims;
 };
 
 #endif

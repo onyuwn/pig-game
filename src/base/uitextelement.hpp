@@ -10,7 +10,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "shader.hpp"
-
+#include "uielementanchortype.hpp"
 
 class UITextElement {
     public:
@@ -29,7 +29,7 @@ class UITextElement {
         glm::vec2 getDims();
         glm::vec2 getPos();
         void setPos(glm::vec2 newPos);
-
+        void setAnchorType(UIElementAnchorType anchorType);
     private:
         std::string text;
         std::string fontPath;
@@ -40,6 +40,7 @@ class UITextElement {
         unsigned int VAO, VBO;
         int x;
         int y;
+        UIElementAnchorType anchorType = TOP_LEFT;
 };
 
 #endif

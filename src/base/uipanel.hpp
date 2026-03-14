@@ -19,7 +19,8 @@ class UIPanel : public UIElement {
         glm::vec2 getPos() override;
         glm::vec2 getDims() override;
         void updateWindowSize(int newWindowWidth, int newWindowHeight) override;
-        void addButton(UIButton *button);
+        void addButton(UIButton* button);
+        void setAnchorType(UIElementAnchorType anchorType);
         std::vector<UIButton*> buttons;
     private:
         int width;
@@ -33,6 +34,7 @@ class UIPanel : public UIElement {
         unsigned int backgroundImageTextureID;
         std::shared_ptr<Shader> uiPanelShader;
         std::shared_ptr<UIMesh> uiMesh;
+        UIElementAnchorType anchorType;
 };
 
 #endif

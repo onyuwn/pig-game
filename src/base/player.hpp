@@ -51,6 +51,7 @@ class Player : GameObject {
         glm::vec3 getForward();
         glm::vec3 rotation;
         std::string name;
+        void notifySpotted();
     private:
         Camera &camera;
         btDiscreteDynamicsWorld *world;
@@ -67,5 +68,6 @@ class Player : GameObject {
         bool clickRequested;
         bool pauseRequested;
         float playerHeight = 1.0;
+        int aggroCount = 0;
 };
 #endif

@@ -7,23 +7,29 @@ UIMaster::UIMaster(unsigned int scrWidth, unsigned int scrHeight) : gamePaused(f
     this->pauseMenuPanel = std::make_shared<UIPanel>(scrWidth, scrHeight, 0, 0, scrWidth, scrHeight, "resources/floorbase.png");
 }
 
-void UIMaster::render(float deltaTime, float curTime) {
+void UIMaster::render(float deltaTime, float curTime, glm::vec2 windowDims) {
     //iterate over elements and render
     for(int i = 0; i < this->textElements.size(); i++) { // TODO: store text element pos in members
-        this->textElements[i]->render(1, glm::vec3(1.0, 0.0, 0.0), curTime);
+        this->textElements[i]->render(1, glm::vec3(1.0, 0.0, 0.0), curTime, windowDims);
     }
 
     // finally show any urgent dialog:
     if(this->dialogShowing) {
-        this->currentDialog->render(200, 200, 1, glm::vec3(1.0, 0, 0), deltaTime, glm::vec2(120,100), curTime);
+        this->currentDialog->render(200, 200, 1, glm::vec3(1.0, 0, 0), deltaTime, glm::vec2(120,100), curTime, windowDims);
     }
 
     if(gamePaused && this->pauseMenuPanel) { // show menu
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         checkHover(this->mousePos.x, this->mousePos.y);
-        this->pauseMenuPanel->render(deltaTime, curTime);
+        this->pauseMenuPanel->render(deltaTime, curTime, windowDims);
     }
+}
+
+void UIMaster::updateWindowSize(int newWindowWidth, int newWindowHeight) {
+    this->scrWidth = newWindowWidth;
+    this->scrHeight = newWindowHeight;
+    this->pauseMenuPanel = std::make_shared<UIPanel>(scrWidth, scrHeight, 0, 0, scrWidth, scrHeight, "resources/floorbase.png");
 }
 
 void UIMaster::showSceneLoadProgress(float progress) {

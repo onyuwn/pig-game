@@ -14,7 +14,7 @@ class UIPanel : public UIElement {
     public:
         UIPanel(int width, int height, int xPos, int yPos, float windowWidth, float windowHeight, glm::vec4 backgroundColor);
         UIPanel(int width, int height, int xPos, int yPos, float windowWidth, float windowHeight, std::string backgroundImagePath);
-        void render(float deltaTime, float curTime) override;
+        void render(float deltaTime, float curTime, glm::vec2 windowDims) override;
         void init(int width, int height, int xPos, int yPos, float windowWidth, float windowHeight) override;
         glm::vec2 getPos() override;
         glm::vec2 getDims() override;

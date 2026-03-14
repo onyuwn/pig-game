@@ -42,7 +42,7 @@ void UIButton::init(int width, int height, int xPos, int yPos, float windowWidth
     this->buttonShader = std::make_shared<Shader>("src/shaders/uielement.vs", "src/shaders/uielement.fs");
 }
 
-void UIButton::render(float deltaTime, float curTime) {
+void UIButton::render(float deltaTime, float curTime, glm::vec2 windowDims) {
     if(hovering && !hoverStarted) {
         hoverStarted = true;
         hoverStartTime = curTime;
@@ -51,8 +51,9 @@ void UIButton::render(float deltaTime, float curTime) {
         hoverStarted = false;
     }
     this->buttonShader->use();
-    this->buttonShader->setMat4("projection", glm::ortho(0.0f, 800.0f, 0.0f, 600.0f));
+    this->buttonShader->setMat4("projection", glm::ortho(0.0f, (float)windowDims.x, 0.0f, (float)windowDims.y));
     this->buttonShader->setVec4("inColor", this->backgroundColor);
+    this->buttonShader->setVec2("window", windowDims);
     if(this->hoverStartTime > 0) {
         this->buttonShader->setFloat("dHoverTime", curTime - this->hoverStartTime);
     } else {
@@ -62,7 +63,7 @@ void UIButton::render(float deltaTime, float curTime) {
     uiMesh->draw(*buttonShader); // also subtract width of total text
     glm::vec2 textDims = this->buttonTextElement->getDims();
     this->buttonTextElement->setPos(glm::vec2((this->xPos + (this->width / 2)) - (textDims.x / 4), this->yPos + (this->height / 2))); 
-    this->buttonTextElement->render(1, glm::vec3(0, 1.0, 0), curTime);
+    this->buttonTextElement->render(1, glm::vec3(0, 1.0, 0), curTime, windowDims);
 }
 
 glm::vec2 UIButton::getPos() {

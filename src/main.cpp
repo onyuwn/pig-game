@@ -33,6 +33,8 @@ float lastFrame = 0.0f;
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
+int curWindowWidth = 800;
+int curWindowHeight = 600;
 
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
@@ -127,10 +129,10 @@ int main()
                 progress += newProgress;
                 crosshair->setText("Please be patient with me...");
                 crosshair->setPos(glm::vec2(400 - (crosshair->getDims().x / 2), 300));
-                crosshair->render(1.0, glm::vec3(0.0, 1.0, 0.0), curTime);
+                crosshair->render(1.0, glm::vec3(0.0, 1.0, 0.0), curTime, glm::vec2(curWindowWidth, curWindowHeight));
                 crosshair->setText(curProcess);
                 crosshair->setPos(glm::vec2(10, 10));
-                crosshair->render(.5, glm::vec3(0.0, 1.0, 0.0), curTime);
+                crosshair->render(.5, glm::vec3(0.0, 1.0, 0.0), curTime, glm::vec2(curWindowWidth, curWindowHeight));
                 glfwSwapBuffers(window);
                 glfwPollEvents();
             });
@@ -142,7 +144,7 @@ int main()
             deltaTime = currentFrame - lastFrame;
             lastFrame = currentFrame;
             if(curScene) {
-                curScene->render(deltaTime, currentFrame, window); // move to curscene var have callback to switch scene
+                curScene->render(deltaTime, currentFrame, window, glm::vec2(curWindowWidth, curWindowHeight)); // move to curscene var have callback to switch scene
             } else {
                 std::cout << "NO SCENE ATTACHED" << std::endl;
             }
@@ -156,6 +158,9 @@ int main()
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
+    curWindowHeight = height;
+    curWindowWidth = width;
+    curScene->updateWindowSize(glm::vec2(curWindowWidth, curWindowHeight));
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)

@@ -14,12 +14,12 @@ void DialogueElement::activate() {
     // init dialogbox
 }
 
-void DialogueElement::render(float x, float y, float scale, glm::vec3 color, float deltaTime, glm::vec2 padding, float curTime) { // will have to come up with some sort of binary to encode all this in easily
+void DialogueElement::render(float x, float y, float scale, glm::vec3 color, float deltaTime, glm::vec2 padding, float curTime, glm::vec2 windowDims) { // will have to come up with some sort of binary to encode all this in easily
     if(showing) {
         if(!closing) {
             this->dialogBox->render(deltaTime, ONCE_STOP);
             this->textElement->setPos(glm::vec2(this->dialogBox->getPos().x + padding.x, (this->dialogBox->getPos().y + this->dialogBox->getDims().y) - padding.y));
-            this->textElement->render(scale, color, curTime);
+            this->textElement->render(scale, color, curTime, windowDims);
         } else {
             this->dialogBox->render(deltaTime, REVERSE_DONE);
             if(this->dialogBox->animComplete()) {

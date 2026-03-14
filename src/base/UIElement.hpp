@@ -9,7 +9,7 @@
 
 class UIElement { // maybe need to make ui mesh class but we will see. maybe just change buffer type in shader to vec3
     public:
-        virtual void render(float deltaTime, float curTime) = 0;
+        virtual void render(float deltaTime, float curTime, glm::vec2 windowDims) = 0;
         virtual void init(int width, int height, int xPos, int yPos, float windowWidth, float windowHeight) = 0;
         virtual glm::vec2 getPos() = 0;
         virtual glm::vec2 getDims() = 0;

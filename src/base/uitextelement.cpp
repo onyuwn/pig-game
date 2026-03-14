@@ -82,14 +82,15 @@ void UITextElement::setText(std::string text) {
     this->text = text;
 }
 
-void UITextElement::render(float scale, glm::vec3 color, float curTime) {
+void UITextElement::render(float scale, glm::vec3 color, float curTime, glm::vec2 windowDims) {
     glClear(GL_DEPTH_BUFFER_BIT); // Clears only the depth buffer otherwise skybox gets fucked up
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     this->textShader.use();
     this->textShader.setFloat("u_time", curTime);
-    glm::mat4 projection = glm::ortho(0.0f, 800.0f, 0.0f, 600.0f);
+    this->textShader.setVec2("window", windowDims);
+    glm::mat4 projection = glm::ortho(0.0f, (float)windowDims.x, 0.0f, (float)windowDims.y);
     this->textShader.setMat4("projection", projection);
     glUniform3f(glGetUniformLocation(this->textShader.shaderProgram, "textColor"), color.x, color.y, color.z);
     glActiveTexture(GL_TEXTURE0);

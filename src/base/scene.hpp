@@ -22,8 +22,9 @@
 
 class Scene {
     public:
-        virtual void render(float deltaTime, float curTime, GLFWwindow *window) = 0;
+        virtual void render(float deltaTime, float curTime, GLFWwindow *window, glm::vec2 windowDims) = 0;
         virtual void initialize(std::function<void(float, std::string)> progressCallback) = 0;
+        virtual void updateWindowSize(glm::vec2 windowDims) = 0;
     private:
         std::vector<std::shared_ptr<GameObject>> gameObjects;
         std::string name;

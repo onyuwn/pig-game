@@ -16,7 +16,7 @@ class UITextElement {
     public:
         UITextElement(std::string fontPath, std::string text, int fontSize, int xPos, int yPos);
         void initText();
-        void render(float scale, glm::vec3 color, float curTime);
+        void render(float scale, glm::vec3 color, float curTime, glm::vec2 windowDims);
         void setText(std::string text);
 
         struct Character {

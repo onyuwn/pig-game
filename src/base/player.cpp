@@ -44,12 +44,12 @@ void Player::initialize() {
     this->playerModel = std::make_shared<Model>((char*)playerModelPath.data());
 }
 
-void Player::render(float curTime, float deltaTime) {
+void Player::render(float curTime, float deltaTime, glm::vec2 windowDims) {
     glm::mat4 model = glm::translate(glm::mat4(1.0), getPlayerPos() - glm::vec3(0, .25, 0)); // ARM ADJUST
     model = glm::scale(model, glm::vec3(.25, .25, .25));
     model *= glm::mat4(getPlayerRotationMatrix());
 
-    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom * 2.0f), (float)800 / (float)600, 0.1f, 100.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom * 2.0f), (float)windowDims.x / (float)windowDims.y, 0.1f, 100.0f);
     glm::mat4 view = camera.GetViewMatrix(getPlayerPos());
 
     this->playerShader->use();

@@ -73,5 +73,6 @@
         "bit": "cpp",
         "charconv": "cpp",
         "format": "cpp"
-    }
+    },
+    "debug.allowBreakpointsEverywhere": true
 }

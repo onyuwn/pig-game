@@ -76,7 +76,7 @@ void UIPanel::init(int width, int height, int xPos, int yPos, float windowWidth,
     this->buttons.push_back(quitButton);
 }
 
-void UIPanel::render(float deltaTime, float curTime) {
+void UIPanel::render(float deltaTime, float curTime, glm::vec2 windowDims) {
     this->uiPanelShader->use();
 
     if(this->backgroundImagePath.size() > 0) {
@@ -85,16 +85,17 @@ void UIPanel::render(float deltaTime, float curTime) {
         uiPanelShader->setInt("uiTex", 0);
     }
 
-    this->uiPanelShader->setMat4("projection", glm::ortho(0.0f, 800.0f, 0.0f, 600.0f));
+    this->uiPanelShader->setMat4("projection", glm::ortho(0.0f, (float)windowDims.x, 0.0f, (float)windowDims.y));
     this->uiPanelShader->setVec4("inColor", this->backgroundColor);
     this->uiPanelShader->setFloat("dHoverTime", 0);
     this->uiPanelShader->setFloat("animTime", 2);
+    this->uiPanelShader->setVec2("window", glm::vec2(windowDims.x, windowDims.y));
     uiMesh->draw(*uiPanelShader);
     glBindTexture(GL_TEXTURE_2D, 0);
     glClear(GL_DEPTH_BUFFER_BIT);
     glDisable(GL_DEPTH_TEST);
     for(int i = 0; i < this->buttons.size(); i++) {
-        this->buttons[i]->render(deltaTime, curTime);
+        this->buttons[i]->render(deltaTime, curTime, windowDims);
     }
     glEnable(GL_DEPTH_TEST);
 }
@@ -108,5 +109,6 @@ glm::vec2 UIPanel::getDims() {
 }
 
 void UIPanel::updateWindowSize(int newWindowWidth, int newWindowHeight) {
-
+    this->windowWidth = newWindowWidth;
+    this->windowHeight = newWindowHeight;
 }

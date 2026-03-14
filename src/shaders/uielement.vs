@@ -5,10 +5,11 @@ layout(location = 1) in vec2 uv;
 out vec2 texCoords;
 
 uniform mat4 projection;
+uniform vec2 window;
 
 void main()
 {
-    vec2 coord = vertex.xy / vec2(800,600);
+    vec2 coord = vertex.xy / vec2(window.x,window.y);
     coord.y = (1.0 - coord.y);
     coord.xy = coord.xy * 2.0 - 1.0;
     //gl_Position = vec4(coord.xy, 0.0, 1.0);

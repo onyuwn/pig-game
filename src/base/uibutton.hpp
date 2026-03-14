@@ -16,7 +16,7 @@ class UIButton : public UIElement {
                  float windowWidth, float windowHeight, glm::vec4 backgroundColor,
                  std::string buttonText, void(*clickEvent)());
         void init(int width, int height, int xPos, int yPos, float windowWidth, float windowHeight) override;
-        void render(float deltaTime, float curTime) override;
+        void render(float deltaTime, float curTime, glm::vec2 windowDims) override;
         glm::vec2 getPos() override;
         glm::vec2 getDims() override;
         void updateWindowSize(int newWindowWidth, int newWindowHeight) override;

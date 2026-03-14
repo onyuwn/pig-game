@@ -9,7 +9,7 @@ class PostProcessor {
         PostProcessor();
         void initialize();
         void begin();
-        void render(float dt);
+        void render(float dt, glm::vec2 windowDims);
         void setScreenSize(glm::vec2 screenSize);
     private:
         Shader *screenShader;

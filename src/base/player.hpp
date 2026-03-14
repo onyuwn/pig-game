@@ -34,7 +34,7 @@ class Player : GameObject {
         glm::mat3 getPlayerRotationMatrix();
         bool isAlive();
         bool isControlDisabled();
-        void render(float curTime, float deltaTime);
+        void render(float curTime, float deltaTime, glm::vec2 windowDims);
         void pollInteractables();
         
         void render(float deltaTime, glm::mat4 model = glm::mat4(1.0), glm::mat4 view = glm::mat4(1.0), glm::mat4 projection = glm::mat4(1.0), float curTime = 0.0, glm::vec3 sceneLightPos = glm::vec3(0.0));

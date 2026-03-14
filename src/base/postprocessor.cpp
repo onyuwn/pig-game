@@ -76,13 +76,14 @@ void PostProcessor::begin() {
     glEnable(GL_DEPTH_TEST);
 }
 
-void PostProcessor::render(float dt) { // split up first and second render passes somehow -- another method?
+void PostProcessor::render(float dt, glm::vec2 windowDims) { // split up first and second render passes somehow -- another method?
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDisable(GL_DEPTH_TEST);
     glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     this->screenShader->use();
     this->screenShader->setFloat("time", dt);
+    this->screenShader->setVec2("window", windowDims);
     //glBindVertexArray(quadVAO);
     glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
     this->quad->draw(*this->screenShader);

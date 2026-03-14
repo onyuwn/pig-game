@@ -5,6 +5,7 @@ in vec2 TexCoords;
 
 uniform sampler2D screenTexture;
 uniform float time;
+uniform vec2 window;
 
 vec3 texsample(const float x, const float y, vec2 fragCoord)
 {
@@ -35,7 +36,7 @@ float rand(vec2 st) {
 
 void main()
 { 
-    vec2 st = gl_FragCoord.xy / vec2(800,600);
+    vec2 st = gl_FragCoord.xy / vec2(window.x,window.y);
     st *= time;
     float val = rand(st);
 

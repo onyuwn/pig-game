@@ -14,7 +14,7 @@ class DialogueElement {
         void activate();
         void advance();
         void reset();
-        void render(float x, float y, float scale, glm::vec3 color, float deltaTime, glm::vec2 padding, float curTime);
+        void render(float x, float y, float scale, glm::vec3 color, float deltaTime, glm::vec2 padding, float curTime, glm::vec2 windowDims);
         void updateText(std::string newText);
         bool showing;
         bool closing;

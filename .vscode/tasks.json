@@ -89,6 +89,7 @@
 				"-B build",
 				"-S .",
 				"-DCMAKE_TOOLCHAIN_FILE=~/vcpkg/scripts/buildsystems/vcpkg.cmake",
+				"-DCMAKE_BUILD_TYPE=Debug"
 			],
 			"options": {
 				"cwd": "${workspaceFolder}"

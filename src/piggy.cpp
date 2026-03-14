@@ -20,7 +20,7 @@ Piggy::Piggy(std::string name, glm::vec3 position, float scale)
 void Piggy::initialize() {
     this->initialized=true;
     this->piggyModel = std::make_shared<Model>((char*)"resources/piggyiso.obj");
-    this->shatteredPigModel = std::make_shared<Model>((char*)"resources/pig/pigshatter4.gltf");
+    this->shatteredPigModel = std::make_shared<Model>((char*)"resources/pig/shatteredpig.gltf");
     this->piggyShader = std::make_shared<Shader>("src/shaders/basic.vs", "src/shaders/basic.fs");
     this->piggyRigidBody = new RigidBodyEntity(this->piggyModel, btVector3(this->initialPosition.x,this->initialPosition.y,this->initialPosition.z), BOX, 0.5f, btVector3(1.0, 1.0, 1.0), this->scale);
     auto shatterings = this->shatteredPigModel->getMeshes();

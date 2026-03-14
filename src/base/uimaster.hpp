@@ -12,7 +12,7 @@
 class UIMaster {
     public:
         UIMaster(unsigned int scrWidth, unsigned int scrHeight);
-        void render(float deltaTime, float curTime);
+        void render(float deltaTime, float curTime, glm::vec2 windowDims);
         void showSceneLoadProgress(float progress);
         void addElement(UIElement* newElement);
         void addTextElement(UITextElement *newElement);
@@ -21,6 +21,7 @@ class UIMaster {
         void checkClick(double mouseX, double mouseY);
         void checkHover(float mouseX, float mouseY);
         void setMousePos(double mouseX, double mouseY);
+        void updateWindowSize(int newWindowWidth, int newWindowHeight);
         bool gamePaused;
     private:
         unsigned int scrWidth;

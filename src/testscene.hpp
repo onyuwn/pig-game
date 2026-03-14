@@ -11,9 +11,10 @@
 class TestScene : public Scene {
     public:
         TestScene(std::string name, Camera &camera, UIMaster &ui);
-        void render(float deltaTime, float curTime, GLFWwindow *window);
+        void render(float deltaTime, float curTime, GLFWwindow *window, glm::vec2 windowDims);
         void initialize(std::function<void(float, std::string)> progressCallback);
         void addGameObject(std::shared_ptr<GameObject> gameObject);
+        void updateWindowSize(glm::vec2 windowDims);
     private:
         std::vector<std::shared_ptr<GameObject>> gameObjects;
         std::shared_ptr<PostProcessor> postProcessor;
@@ -24,11 +25,14 @@ class TestScene : public Scene {
         std::shared_ptr<Shader> sceneShader;
         std::shared_ptr<Player> player;
         std::string name;
+        void spawnNewPig(int pigIdx);
         Camera &camera;
         UIMaster &ui;
         bool initialized;
         bool paused;
         bool physDebugOn;
+        float lastPigSpawnTime;
+        float pigSpawnFrequency;
 };
 
 #endif

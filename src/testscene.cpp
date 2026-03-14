@@ -1,12 +1,11 @@
 #include "testscene.hpp"
 
-TestScene::TestScene(
-    std::string name,
-    Camera &camera, UIMaster &ui) : initialized(false), camera(camera), ui(ui), physDebugOn(false), paused(false) {
-
+TestScene::TestScene(std::string name, Camera &camera, UIMaster &ui) : initialized(false), camera(camera), ui(ui), physDebugOn(false), paused(false) {
+        this->lastPigSpawnTime = 0.0f;
+        this->pigSpawnFrequency = 2.0f;
 }
 
-void TestScene::render(float deltaTime, float curTime, GLFWwindow *window) {
+void TestScene::render(float deltaTime, float curTime, GLFWwindow *window, glm::vec2 windowDims) {
     if(this->initialized) {
         //this->postProcessor->begin();
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
@@ -14,8 +13,8 @@ void TestScene::render(float deltaTime, float curTime, GLFWwindow *window) {
 
         this->world->stepSimulation(deltaTime * 5.0f, 7);
         this->player->UpdatePlayer(curTime, deltaTime, window, this->paused);
-
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom * 2.0f), (float)800 / (float)600, 0.1f, 100.0f);
+        // this->ui.updateWindowSize(windowDims.x, windowDims.y);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom * 2.0f), (float)windowDims.x / (float)windowDims.y, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix(player->getPlayerPos() + glm::vec3(0,1,0));
 
         this->sceneShader->use();
@@ -30,16 +29,21 @@ void TestScene::render(float deltaTime, float curTime, GLFWwindow *window) {
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0, -10, 0));
         sceneShader->setMat4("model", model);
-        this->player->render(curTime, deltaTime);
+        this->player->render(curTime, deltaTime, windowDims);
         for(int i = 0; i < this->gameObjects.size(); i++) {
             if(!this->gameObjects[i]->shouldBeDestroyed) {
                 this->gameObjects[i]->render(deltaTime, model, view, projection, curTime, this->player->getPlayerHandPos());
             }
         }
+        
+        if(curTime - lastPigSpawnTime > pigSpawnFrequency && curTime / pigSpawnFrequency < 5) {
+            this->spawnNewPig(curTime / pigSpawnFrequency); // todo store models and shaders in scene, game object instanced with pointers to those?
+            lastPigSpawnTime = curTime;
+        }
 
         this->terrain->render(*this->sceneShader);
         this->ui.gamePaused = this->paused;
-        this->ui.render(deltaTime, curTime);
+        this->ui.render(deltaTime, curTime, windowDims);
         // this->skybox->render(glm::mat4(glm::mat3(view)), projection);
         //this->postProcessor->render(curTime);
         glfwSwapBuffers(window);
@@ -83,4 +87,18 @@ void TestScene::initialize(std::function<void(float, std::string)> progressCallb
 
 void TestScene::addGameObject(std::shared_ptr<GameObject> gameObject) {
     this->gameObjects.push_back(gameObject);
+}
+
+void TestScene::spawnNewPig(int pigIdx) {
+    std::shared_ptr<GameObject> piggyGameObject = std::make_shared<Piggy>("piggy", glm::vec3(pigIdx * 2, 8, -20), 2.0);
+    piggyGameObject->initialize();
+    if (auto piggyPtr = std::dynamic_pointer_cast<Piggy>(piggyGameObject)) {
+        piggyPtr->addToWorld(this->world);
+    }
+    this->addGameObject(piggyGameObject);
+    this->gameObjects.push_back(piggyGameObject);
+}
+
+void TestScene::updateWindowSize(glm::vec2 windowDims) {
+    this->ui.updateWindowSize(windowDims.x, windowDims.y);
 }

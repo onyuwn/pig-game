@@ -20,6 +20,7 @@ Piggy::Piggy(std::string name, glm::vec3 position, float scale,
     this->piggyModel = _pigModel;
     this->shatteredPigModel = _shatteredPigModel;
     this->piggyShader = _pigShader;
+    this->position = this->initialPosition;
 }
 
 void Piggy::initialize() {
@@ -27,7 +28,9 @@ void Piggy::initialize() {
     //this->piggyModel = std::make_shared<Model>((char*)"resources/piggyiso.obj");
     //this->shatteredPigModel = std::make_shared<Model>((char*)"resources/pig/shatteredpig.gltf");
     //this->piggyShader = std::make_shared<Shader>("src/shaders/basic.vs", "src/shaders/basic.fs");
-    this->piggyRigidBody = new RigidBodyEntity(this->piggyModel, btVector3(this->initialPosition.x,this->initialPosition.y,this->initialPosition.z), BOX, 0.5f, btVector3(1.0, 1.0, 1.0), this->scale);
+    this->piggyRigidBody = new RigidBodyEntity(
+        this->piggyModel, btVector3(this->initialPosition.x,this->initialPosition.y,this->initialPosition.z), BOX, 0.5f, btVector3(1.0, 1.0, 1.0), this->scale
+    );
     auto shatterings = this->shatteredPigModel->getMeshes();
     for(auto& mesh : shatterings) {
         auto pigPiece = std::make_shared<RigidBodyEntity>(
@@ -67,25 +70,33 @@ void Piggy::render(float deltaTime, glm::mat4 model, glm::mat4 view, glm::mat4 p
         this->isHit = false;
         hitTime = curTime;
     }
-    if(curTime - lastPlayerSpottedTime < 10 && this->player != nullptr && this->health > 0) { // position override
+    if(this->player != nullptr && this->health > 0) { // position override
         glm::vec3 piggyPos = this->getPos();
-        glm::vec3 direction = glm::normalize(this->player->getPlayerPos() - piggyPos);
-        glm::mat4 newPiggyModelMatrix = piggyRigidBody->render(glm::mat4(1.0), false);
-        glm::vec4 forwardUnNormal = newPiggyModelMatrix * glm::vec4(0.0, 0.0, 1.0, 0.0);
-        glm::vec3 currentForward = glm::normalize(glm::vec3(forwardUnNormal));
-        this->forward = forward;
-        float angle = acos(glm::dot(currentForward, direction));
-        newPiggyModelMatrix = glm::rotate(newPiggyModelMatrix, angle, glm::vec3(0,1.0,0)); // important. probably a better way to do this with lookat
-        //newPiggyModelMatrix = glm::translate(newPiggyModelMatrix, this->player->getPlayerPos());
+        glm::vec3 playerPos = this->player->getPlayerPos(); 
+        // TODO: SET 4 TO GROUND HEIGHT??
+        glm::vec3 direction = glm::normalize(glm::vec3(piggyPos.x, 4.0, piggyPos.z) - glm::vec3(playerPos.x, 4.0, playerPos.z));
+        glm::vec3 newForward = direction; // duh
+        this->forward = newForward;
+        glm::vec3 movement = this->forward * deltaTime * 4.0f;
+        this->position -= movement;
+        //glm::mat4 newPiggyModelMatrix = glm::translate(glm::mat4(1.0), this->position);
+        // teleport problem HEREEEughh  --- OMFG lookat rotates...and moves lmao
+        glm::mat4 newPiggyModelMatrix = glm::inverse(
+            glm::lookAt(glm::vec3(this->position.x, 4.0, this->position.z), direction + glm::vec3(this->position.x, 4.0, this->position.z), glm::vec3(0,1.0,0))
+        );
         newPiggyModelMatrix = glm::scale(newPiggyModelMatrix, glm::vec3(scale));
+        glm::vec4 forwardUnNormal = newPiggyModelMatrix * glm::vec4(0.0, 0.0, 1.0, 0.0);
+        this->piggyRigidBody->setPos(this->position);
+        glm::vec3 rigidBodyPos = this->piggyRigidBody->getPos();
         this->piggyShader->setMat4("model", newPiggyModelMatrix);
         this->piggyShader->setFloat("opacity", 1.0);
         this->piggyModel->draw(*this->piggyShader, curTime);
     } else {
+        this->followingPlayer = false;
         this->rotation.y = curTime;
-        // printf("PLAYER SPOTTED???? %s\n", playerSpotted() ? "true" : "false");
         if(this->health > 0) {
             glm::mat4 newPiggyModelMatrix = piggyRigidBody->render(glm::mat4(1.0), false);
+            this->position = this->piggyRigidBody->getPos();
             newPiggyModelMatrix = glm::rotate(newPiggyModelMatrix, this->rotation.y, glm::vec3(0,1.0,0));
             glm::vec4 forwardUnNormal = newPiggyModelMatrix * glm::vec4(0.0, 0.0, 1.0, 0.0);
             this->forward = glm::normalize(glm::vec3(forwardUnNormal));
@@ -94,6 +105,7 @@ void Piggy::render(float deltaTime, glm::mat4 model, glm::mat4 view, glm::mat4 p
                 lastPlayerSpottedTime = curTime;
             }
             newPiggyModelMatrix = glm::scale(newPiggyModelMatrix, glm::vec3(scale));
+            this->piggyModelMatrix = newPiggyModelMatrix;
             this->piggyShader->setMat4("model", newPiggyModelMatrix);
             this->piggyShader->setFloat("opacity", 1.0);
             this->piggyModel->draw(*this->piggyShader, curTime);
@@ -103,12 +115,12 @@ void Piggy::render(float deltaTime, glm::mat4 model, glm::mat4 view, glm::mat4 p
                     this->shatteredPigRigidBodies[i]->addToWorld(this->physWorld);
                     this->shatteredPigRigidBodies[i]->entityRigidBody->activate(true);
                     glm::vec3 offset = glm::vec3(0.0);
-                    if(i % 2 == 0) {
-                        offset = glm::vec3(-2,2,-2);
-                    } else if(i % 3 == 0) {
-                        offset = glm::vec3(2,2,2);
+                    if(i == 0) {
+                        offset = glm::vec3(0.0);
+                    } else if(i == 1) {
+                        offset = this->forward * 4.0f;
                     } else {
-                        offset = glm::vec3(-2,2,2);
+                        offset = this->forward * -4.0f;
                     }
                     this->shatteredPigRigidBodies[i]->setPos(this->piggyRigidBody->getPos() + offset);
                     shatterPiecesInPhysWorld++;
@@ -120,9 +132,9 @@ void Piggy::render(float deltaTime, glm::mat4 model, glm::mat4 view, glm::mat4 p
                 if(i == 0) {
                     throwingForce = glm::vec3(0,10,0);
                 } else if(i == 1) {
-                    throwingForce = -this->forward * 10.0f;
+                    throwingForce = (this->forward * 10.0f) + glm::vec3(0.0,5.0,0.0);
                 } else {
-                    throwingForce = this->forward * 10.0f;
+                    throwingForce = (-this->forward * 10.0f) + glm::vec3(0.0,5.0,0.0);
                 }
                 btVector3 btForce = btVector3(throwingForce.x, throwingForce.y, throwingForce.z);
                 if(!pigExploded) {
@@ -171,7 +183,7 @@ void Piggy::setPos(std::function<glm::vec3()> posCallback) {
 }
 
 glm::vec3 Piggy::getPos() {
-    return this->piggyRigidBody->getPos();
+    return this->position;
 }
 
 void Piggy::applyForce(glm::vec3 force) {
@@ -209,11 +221,12 @@ bool Piggy::playerSpotted(glm::vec3 forward) {
     btCollisionWorld::ClosestRayResultCallback RayCallback(btVector3(outOrigin.x, outOrigin.y, outOrigin.z), btVector3(outEnd.x, outEnd.y, outEnd.z));
     this->physWorld->rayTest(btVector3(outOrigin.x, outOrigin.y, outOrigin.z), btVector3(outEnd.x, outEnd.y, outEnd.z), RayCallback);
     //printf("forward: %f, %f, %f spotted? %s\n", forward.x, forward.y, forward.z, RayCallback.hasHit() ? "true": "false");
-    if(RayCallback.hasHit()) {
+    if(RayCallback.hasHit() && followingPlayer == false) {
         this->player = (Player*)(RayCallback.m_collisionObject->getUserPointer());
         if(this->player != nullptr && this->player->name == "player") {
             bool isAlive = player->isAlive(); 
             this->player->notifySpotted();  
+            followingPlayer = true;
         } else {
             this->player = nullptr;
         }

@@ -148,7 +148,6 @@ glm::vec3 RigidBodyEntity::getPos() {
 
 glm::mat4 RigidBodyEntity::render(glm::mat4 model, bool positionOverride) {
     if(positionOverride) {
-        this->entityRigidBody->activate(false);
     } else {
         btTransform curTransform = this->entityRigidBody->getWorldTransform();
         btVector3 curPos = curTransform.getOrigin();

@@ -62,9 +62,12 @@ class Piggy : public GameObject {
         glm::vec3 forward;
         float scale = 1.0;
         glm::vec3 initialPosition;
+        glm::vec3 position;
         glm::mat4 piggyModelMatrix;
         Player* player;
         float lastPlayerSpottedTime;
+        float initialPlayerSpottedTime;
+        bool followingPlayer;
 };
 
 #endif

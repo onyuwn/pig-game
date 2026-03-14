@@ -20,11 +20,13 @@ class TestScene : public Scene {
         std::shared_ptr<PostProcessor> postProcessor;
         std::shared_ptr<Terrain> terrain;
         std::shared_ptr<Model> sceneTerrainModel;
-        std::shared_ptr<Model> piggyModel;
         btDiscreteDynamicsWorld *world;
         std::shared_ptr<Shader> sceneShader;
         std::shared_ptr<Player> player;
         std::string name;
+        std::shared_ptr<Model> piggyModel;
+        std::shared_ptr<Model> shatteredPigModel1;
+        std::shared_ptr<Shader> pigShader;
         void spawnNewPig(int pigIdx);
         Camera &camera;
         UIMaster &ui;

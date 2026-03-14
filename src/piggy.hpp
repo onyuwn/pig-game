@@ -12,6 +12,7 @@
 #include "base/gameobjectinteractiontype.hpp"
 #include "base/player.hpp"
 #include <typeinfo>
+#include <cstdlib>
 
 class Piggy : public GameObject {
     public:
@@ -26,7 +27,9 @@ class Piggy : public GameObject {
         btDynamicsWorld* physWorld;
         std::vector<std::shared_ptr<RigidBodyEntity>> shatteredPigRigidBodies;
         glm::mat4 modelMatrix;
-        Piggy(std::string name, glm::vec3 position, float scale);
+        Piggy(std::string name, glm::vec3 position, float scale, 
+            std::shared_ptr<Model> _pigModel, std::shared_ptr<Model> _shatteredPigModel,
+            std::shared_ptr<Shader> _pigShader);
         void render(float deltaTime, glm::mat4 model = glm::mat4(1.0),
                     glm::mat4 view = glm::mat4(1.0), glm::mat4 projection = glm::mat4(1.0),
                     float curTime = 0.0, glm::vec3 sceneLightPos = glm::vec3(1.0)) override;

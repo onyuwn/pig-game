@@ -1,13 +1,15 @@
 #include "piggy.hpp"
 
-Piggy::Piggy(std::string name, glm::vec3 position, float scale)
+Piggy::Piggy(std::string name, glm::vec3 position, float scale,
+    std::shared_ptr<Model> _pigModel, std::shared_ptr<Model> _shatteredPigModel,
+    std::shared_ptr<Shader> _pigShader)
     : name(name), interacting(false) {
     this->initialized = false;
     this->isHit = false;
     glm::mat4 model = glm::mat4(1.0);
     model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     this->modelMatrix = model;
-    this->health=100;
+    this->health=10;
     pigExploded = false;
     this->shatterPiecesInPhysWorld=0;
     this->scale=scale;
@@ -15,13 +17,16 @@ Piggy::Piggy(std::string name, glm::vec3 position, float scale)
     this->shouldBeDestroyed=false;
     this->rotation = glm::vec3(0.0);
     this->player=nullptr;
+    this->piggyModel = _pigModel;
+    this->shatteredPigModel = _shatteredPigModel;
+    this->piggyShader = _pigShader;
 }
 
 void Piggy::initialize() {
     this->initialized=true;
-    this->piggyModel = std::make_shared<Model>((char*)"resources/piggyiso.obj");
-    this->shatteredPigModel = std::make_shared<Model>((char*)"resources/pig/shatteredpig.gltf");
-    this->piggyShader = std::make_shared<Shader>("src/shaders/basic.vs", "src/shaders/basic.fs");
+    //this->piggyModel = std::make_shared<Model>((char*)"resources/piggyiso.obj");
+    //this->shatteredPigModel = std::make_shared<Model>((char*)"resources/pig/shatteredpig.gltf");
+    //this->piggyShader = std::make_shared<Shader>("src/shaders/basic.vs", "src/shaders/basic.fs");
     this->piggyRigidBody = new RigidBodyEntity(this->piggyModel, btVector3(this->initialPosition.x,this->initialPosition.y,this->initialPosition.z), BOX, 0.5f, btVector3(1.0, 1.0, 1.0), this->scale);
     auto shatterings = this->shatteredPigModel->getMeshes();
     for(auto& mesh : shatterings) {
@@ -110,12 +115,12 @@ void Piggy::render(float deltaTime, glm::mat4 model, glm::mat4 view, glm::mat4 p
                 glm::mat4 newPiggyModelMatrix = this->shatteredPigRigidBodies[i]->render(glm::mat4(1.0), false);
                 newPiggyModelMatrix = glm::scale(newPiggyModelMatrix, glm::vec3(scale));
                 glm::vec3 throwingForce = glm::vec3(0.0);
-                if(i % 2 == 0) {
-                    throwingForce = glm::vec3(2,7,5 + i);
-                } else if(i % 3 == 0) {
-                    throwingForce = glm::vec3(i,10,3);
+                if(i == 0) {
+                    throwingForce = glm::vec3(0, 3, 20);
+                } else if(i == 1) {
+                    throwingForce = glm::vec3(0,50,0);
                 } else {
-                    throwingForce = glm::vec3(5 + i,7,2 + i);
+                    throwingForce = glm::vec3(-20, 3, 0);
                 }
                 btVector3 btForce = btVector3(throwingForce.x, throwingForce.y, throwingForce.z);
                 if(!pigExploded) {
@@ -204,7 +209,7 @@ bool Piggy::playerSpotted(glm::vec3 forward) {
     //printf("forward: %f, %f, %f spotted? %s\n", forward.x, forward.y, forward.z, RayCallback.hasHit() ? "true": "false");
     if(RayCallback.hasHit()) {
         this->player = (Player*)(RayCallback.m_collisionObject->getUserPointer());
-        if(this->player->name == "player") {
+        if(this->player != nullptr && this->player->name == "player") {
             bool isAlive = player->isAlive();   
         } else {
             this->player = nullptr;

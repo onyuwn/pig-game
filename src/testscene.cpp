@@ -36,7 +36,7 @@ void TestScene::render(float deltaTime, float curTime, GLFWwindow *window, glm::
             }
         }
         
-        if(curTime - lastPigSpawnTime > pigSpawnFrequency && curTime / pigSpawnFrequency < 5) {
+        if(curTime - lastPigSpawnTime > pigSpawnFrequency) {
             this->spawnNewPig(curTime / pigSpawnFrequency); // todo store models and shaders in scene, game object instanced with pointers to those?
             lastPigSpawnTime = curTime;
         }
@@ -55,6 +55,9 @@ void TestScene::initialize(std::function<void(float, std::string)> progressCallb
     progressCallback(.25f, "loading shaders...");
     this->sceneShader = std::make_shared<Shader>("src/shaders/basic.vs", "src/shaders/basic.fs");
     this->paused = false;
+    this->piggyModel = std::make_shared<Model>((char*)"resources/piggyiso.obj");
+    this->shatteredPigModel1 = std::make_shared<Model>((char*)"resources/pig/shatteredpig.gltf");
+    this->pigShader = std::make_shared<Shader>("src/shaders/basic.vs", "src/shaders/basic.fs");
     progressCallback(.25f, "initializing physics...");
     btBroadphaseInterface* broadphase = new btDbvtBroadphase();
     btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
@@ -67,7 +70,9 @@ void TestScene::initialize(std::function<void(float, std::string)> progressCallb
     world->setGravity(btVector3(0,-9.81f,0));
     progressCallback(.25f, "initializing terrain...");
     this->sceneTerrainModel = std::make_shared<Model>((char*)"resources/testfloor.obj");
-    std::shared_ptr<GameObject> piggyGameObject = std::make_shared<Piggy>("piggy", glm::vec3(0, 8, -20), 2.0);
+    std::shared_ptr<GameObject> piggyGameObject =
+        std::make_shared<Piggy>("piggy", glm::vec3(0, 8, -20), 2.0, this->piggyModel, this->shatteredPigModel1, this->pigShader
+    );
     piggyGameObject->initialize();
     if (auto piggyPtr = std::dynamic_pointer_cast<Piggy>(piggyGameObject)) {
         piggyPtr->addToWorld(this->world);
@@ -90,7 +95,13 @@ void TestScene::addGameObject(std::shared_ptr<GameObject> gameObject) {
 }
 
 void TestScene::spawnNewPig(int pigIdx) {
-    std::shared_ptr<GameObject> piggyGameObject = std::make_shared<Piggy>("piggy", glm::vec3(pigIdx * 2, 8, -20), 2.0);
+    int xRand = (rand() % 100) - 50;
+    int yRand = (rand() % 25);
+    int zRand = (rand() % 100) - 50;
+    std::shared_ptr<GameObject> piggyGameObject = 
+        std::make_shared<Piggy>(
+            "piggy", glm::vec3(xRand, yRand, zRand), 2.0, this->piggyModel, this->shatteredPigModel1, this->pigShader
+        );
     piggyGameObject->initialize();
     if (auto piggyPtr = std::dynamic_pointer_cast<Piggy>(piggyGameObject)) {
         piggyPtr->addToWorld(this->world);

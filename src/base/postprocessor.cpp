@@ -91,5 +91,5 @@ void PostProcessor::render(float dt, glm::vec2 windowDims) { // split up first a
 }
 
 void PostProcessor::setScreenSize(glm::vec2 windowDims) {
-    this->initialize(screenSize);
+    this->initialize(windowDims);
 }

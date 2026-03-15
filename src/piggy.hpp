@@ -11,6 +11,8 @@
 #include "base/gameobject.hpp"
 #include "base/gameobjectinteractiontype.hpp"
 #include "base/player.hpp"
+#include "base/animation.hpp"
+#include "base/animator.hpp"
 #include <typeinfo>
 #include <cstdlib>
 
@@ -58,6 +60,7 @@ class Piggy : public GameObject {
         std::shared_ptr<Model> shatteredPigModel;
         std::vector<std::shared_ptr<Mesh>> shatteredPigMeshPieces;
         std::shared_ptr<Shader> piggyShader;
+        std::shared_ptr<Animator> animator;
         std::function<glm::vec3()> positionCallback;
         glm::vec3 forward;
         float scale = 1.0;

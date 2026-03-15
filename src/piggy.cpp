@@ -47,6 +47,9 @@ void Piggy::initialize() {
         this->shatteredPigRigidBodies.push_back(pigPiece);
     }
     this->piggyRigidBody->initialize(this->modelMatrix);
+    Animation* walkAnim = new Animation((char*)"resources/pig/basepig/pigwalking2.gltf", this->piggyModel.get(), 0);
+    this->animator = std::make_shared<Animator>(walkAnim);
+    this->animator->playAnimation(walkAnim);
 }
 
 void Piggy::addToWorld(btDiscreteDynamicsWorld *world) {
@@ -65,6 +68,8 @@ void Piggy::render(float deltaTime, glm::mat4 model, glm::mat4 view, glm::mat4 p
     this->piggyShader->setMat4("projection", projection);
     this->piggyShader->setMat4("view", view);
     this->piggyShader->setVec3("lightPos", sceneLightPos);
+    this->animator->updateAnimation(deltaTime);
+    glm::mat4 animationTransform = this->animator->calculateTransformFromAnimation();
     this->piggyShader->setVec3("lightColor", glm::vec3(1.0));
     if(this->isHit==true) {
         this->isHit = false;
@@ -82,9 +87,14 @@ void Piggy::render(float deltaTime, glm::mat4 model, glm::mat4 view, glm::mat4 p
         //glm::mat4 newPiggyModelMatrix = glm::translate(glm::mat4(1.0), this->position);
         // teleport problem HEREEEughh  --- OMFG lookat rotates...and moves lmao
         glm::mat4 newPiggyModelMatrix = glm::inverse(
-            glm::lookAt(glm::vec3(this->position.x, 4.0, this->position.z), direction + glm::vec3(this->position.x, 4.0, this->position.z), glm::vec3(0,1.0,0))
+            glm::lookAt(
+                glm::vec3(this->position.x, 4.0, this->position.z),
+                direction + glm::vec3(this->position.x, 4.0, this->position.z),
+                glm::vec3(0,1.0,0)
+            )
         );
         newPiggyModelMatrix = glm::scale(newPiggyModelMatrix, glm::vec3(scale));
+        newPiggyModelMatrix *= animationTransform;
         glm::vec4 forwardUnNormal = newPiggyModelMatrix * glm::vec4(0.0, 0.0, 1.0, 0.0);
         this->piggyRigidBody->setPos(this->position);
         glm::vec3 rigidBodyPos = this->piggyRigidBody->getPos();
@@ -93,8 +103,8 @@ void Piggy::render(float deltaTime, glm::mat4 model, glm::mat4 view, glm::mat4 p
         this->piggyModel->draw(*this->piggyShader, curTime);
     } else {
         this->followingPlayer = false;
-        this->rotation.y = curTime;
         if(this->health > 0) {
+            this->rotation.y = curTime;
             glm::mat4 newPiggyModelMatrix = piggyRigidBody->render(glm::mat4(1.0), false);
             this->position = this->piggyRigidBody->getPos();
             newPiggyModelMatrix = glm::rotate(newPiggyModelMatrix, this->rotation.y, glm::vec3(0,1.0,0));
@@ -115,13 +125,13 @@ void Piggy::render(float deltaTime, glm::mat4 model, glm::mat4 view, glm::mat4 p
                     this->shatteredPigRigidBodies[i]->addToWorld(this->physWorld);
                     this->shatteredPigRigidBodies[i]->entityRigidBody->activate(true);
                     glm::vec3 offset = glm::vec3(0.0);
-                    if(i == 0) {
-                        offset = glm::vec3(0.0);
-                    } else if(i == 1) {
-                        offset = this->forward * 4.0f;
-                    } else {
-                        offset = this->forward * -4.0f;
-                    }
+                    // if(i == 0) {
+                    //     offset = glm::vec3(0.0);
+                    // } else if(i == 1) {
+                    //     offset = this->forward * 4.0f;
+                    // } else {
+                    //     offset = this->forward * -4.0f;
+                    // }
                     this->shatteredPigRigidBodies[i]->setPos(this->piggyRigidBody->getPos() + offset);
                     shatterPiecesInPhysWorld++;
                 }
@@ -129,12 +139,16 @@ void Piggy::render(float deltaTime, glm::mat4 model, glm::mat4 view, glm::mat4 p
                 glm::mat4 newPiggyModelMatrix = this->shatteredPigRigidBodies[i]->render(glm::mat4(1.0), false);
                 newPiggyModelMatrix = glm::scale(newPiggyModelMatrix, glm::vec3(scale));
                 glm::vec3 throwingForce = glm::vec3(0.0);
-                if(i == 0) {
-                    throwingForce = glm::vec3(0,10,0);
-                } else if(i == 1) {
-                    throwingForce = (this->forward * 10.0f) + glm::vec3(0.0,5.0,0.0);
-                } else {
-                    throwingForce = (-this->forward * 10.0f) + glm::vec3(0.0,5.0,0.0);
+                // if(i == 0) {
+                //     throwingForce = glm::vec3(0,10,0);
+                // } else if(i == 1) {
+                //     throwingForce = (this->forward * 10.0f) + glm::vec3(0.0,5.0,0.0);
+                // } else {
+                //     throwingForce = (-this->forward * 10.0f) + glm::vec3(0.0,5.0,0.0);
+                // }
+
+                if(i == 1) {
+                    throwingForce = (this->forward * 10.0f);
                 }
                 btVector3 btForce = btVector3(throwingForce.x, throwingForce.y, throwingForce.z);
                 if(!pigExploded) {

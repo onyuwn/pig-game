@@ -52,7 +52,10 @@ std::string directory;
 void Model::loadModel(std::string path) {
     Assimp::Importer importer;
     const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs); 
-
+    for(int i = 0; i < scene->mNumAnimations; i++) {
+        auto animation = scene->mAnimations[i];
+        std::cout << animation->mName.C_Str() << " ANIMATION " << std::endl;
+    }
     if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
         std::cout << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;

@@ -16,7 +16,7 @@ vec3 texsample(const float x, const float y, vec2 fragCoord)
 
 vec3 texfilter(vec2 fragCoord, float offsetStep)
 {
-    float offset = offsetStep / 500.0; // yuh
+    float offset = 1.0 / 500.0; // yuh
     vec3 sum = texsample(-offset, -offset, fragCoord) * 0.
              + texsample(-offset,  0, fragCoord) * -1.
              + texsample(-offset,  offset, fragCoord) * 0.
@@ -37,15 +37,9 @@ float rand(vec2 st) {
 void main()
 { 
     vec2 st = gl_FragCoord.xy / vec2(window.x,window.y);
-    st *= time;
+    st *= 1.0;
     float val = rand(st);
 
-    if(time < 2 && val < abs(time) / 50.0) { // actually player pos lol
-        FragColor = vec4(1.0, 0.0, 0.0,1.0);
-    } else if(time < 2) {
-        vec3 cf = texfilter(TexCoords, abs(time));
-        FragColor = vec4(cf, 1.0);
-    } else {
-        FragColor = texture(screenTexture, TexCoords);
-    }
+    vec3 cf = texfilter(TexCoords, abs(time));
+    FragColor = vec4(cf, 1.0);
 }

@@ -15,6 +15,8 @@ void UIMaster::render(float deltaTime, float curTime, glm::vec2 windowDims) {
     }
 
     for(int i = 0; i < this->panels.size(); i++) {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         this->panels[i]->render(deltaTime, curTime, windowDims);
     }
 

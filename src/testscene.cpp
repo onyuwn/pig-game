@@ -7,7 +7,7 @@ TestScene::TestScene(std::string name, Camera &camera, UIMaster &ui) : initializ
 
 void TestScene::render(float deltaTime, float curTime, GLFWwindow *window, glm::vec2 windowDims) {
     if(this->initialized) {
-        //this->postProcessor->begin();
+        this->postProcessor->begin();
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
@@ -45,7 +45,7 @@ void TestScene::render(float deltaTime, float curTime, GLFWwindow *window, glm::
         this->ui.gamePaused = this->paused;
         this->ui.render(deltaTime, curTime, windowDims);
         // this->skybox->render(glm::mat4(glm::mat3(view)), projection);
-        //this->postProcessor->render(curTime);
+        this->postProcessor->render(curTime, windowDims);
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
@@ -64,7 +64,7 @@ void TestScene::initialize(std::function<void(float, std::string)> progressCallb
     btCollisionDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
     btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver;
     this->world = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
-    this->postProcessor = std::make_shared<PostProcessor>();
+    this->postProcessor = std::make_shared<PostProcessor>(glm::vec2(800, 600));
 
     stbi_set_flip_vertically_on_load(false);
     world->setGravity(btVector3(0,-9.81f,0));
@@ -112,4 +112,5 @@ void TestScene::spawnNewPig(int pigIdx) {
 
 void TestScene::updateWindowSize(glm::vec2 windowDims) {
     this->ui.updateWindowSize(windowDims.x, windowDims.y);
+    this->postProcessor->setScreenSize(windowDims);
 }

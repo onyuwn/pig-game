@@ -343,6 +343,6 @@ GameObjectInteractionType Player::getInteraction() {
 }
 
 void Player::notifySpotted() {
-    this->aggroCount++;
     this->uiCallback.addImagePanel(64, 64, this->aggroCount * 64, 0, "resources/eyetest1.png");
+    this->aggroCount++;
 }

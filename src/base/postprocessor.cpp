@@ -1,24 +1,24 @@
 #include "postprocessor.hpp"
 
-PostProcessor::PostProcessor() {
-    initialize();
+PostProcessor::PostProcessor(glm::vec2 windowDims) {
+    initialize(windowDims);
 }
 
-void PostProcessor::initialize() {
+void PostProcessor::initialize(glm::vec2 windowDims) {
     std::cout << "postprocessor initialized." << std::endl;
     glGenFramebuffers(1, &frameBuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
     // create a color attachment texture
     glGenTextures(1, &textureColorBuffer);
     glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1600, 1200, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL); // TODO: idk why but need to set this to double screen dims lol
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, windowDims.x * 2, windowDims.y * 2, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL); // TODO: idk why but need to set this to double screen dims lol
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorBuffer, 0);
 
     glGenRenderbuffers(1, &renderBuffer);
     glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 1600, 1200);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, windowDims.x * 2, windowDims.y * 2);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderBuffer);
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -88,4 +88,8 @@ void PostProcessor::render(float dt, glm::vec2 windowDims) { // split up first a
     glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
     this->quad->draw(*this->screenShader);
     //glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
+void PostProcessor::setScreenSize(glm::vec2 windowDims) {
+    this->initialize(screenSize);
 }

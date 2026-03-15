@@ -6,8 +6,8 @@
 
 class PostProcessor {
     public:
-        PostProcessor();
-        void initialize();
+        PostProcessor(glm::vec2 windowDims);
+        void initialize(glm::vec2 windowDims);
         void begin();
         void render(float dt, glm::vec2 windowDims);
         void setScreenSize(glm::vec2 screenSize);
@@ -15,7 +15,7 @@ class PostProcessor {
         Shader *screenShader;
         bool initialized;
         UIMesh *quad;
-        glm::vec2 screenSize();
+        glm::vec2 screenSize;
         unsigned int quadVAO, quadVBO;
         unsigned int frameBuffer;
         unsigned int textureColorBuffer;

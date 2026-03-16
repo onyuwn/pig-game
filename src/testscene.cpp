@@ -2,7 +2,7 @@
 
 TestScene::TestScene(std::string name, Camera &camera, UIMaster &ui) : initialized(false), camera(camera), ui(ui), physDebugOn(false), paused(false) {
         this->lastPigSpawnTime = 0.0f;
-        this->pigSpawnFrequency = 2.0f;
+        this->pigSpawnFrequency = 10.0f;
 }
 
 void TestScene::render(float deltaTime, float curTime, GLFWwindow *window, glm::vec2 windowDims) {
@@ -56,8 +56,10 @@ void TestScene::initialize(std::function<void(float, std::string)> progressCallb
     this->sceneShader = std::make_shared<Shader>("src/shaders/basic.vs", "src/shaders/basic.fs");
     this->paused = false;
     this->piggyModel = std::make_shared<Model>((char*)"resources/pig/basepig/pigwalking2.gltf");
+    this->gun1Model = std::make_shared<Model>((char*)"resources/items/testgun1.gltf");
     this->shatteredPigModel1 = std::make_shared<Model>((char*)"resources/pig/shatters/shatteredpig5.gltf");
     this->pigShader = std::make_shared<Shader>("src/shaders/basic.vs", "src/shaders/basic.fs");
+    this->outlineShader = std::make_shared<Shader>("src/shaders/outline.vs", "src/shaders/outline.fs");
     progressCallback(.25f, "initializing physics...");
     btBroadphaseInterface* broadphase = new btDbvtBroadphase();
     btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
@@ -73,11 +75,18 @@ void TestScene::initialize(std::function<void(float, std::string)> progressCallb
     std::shared_ptr<GameObject> piggyGameObject =
         std::make_shared<Piggy>("piggy", glm::vec3(0, 8, -20), 2.0, this->piggyModel, this->shatteredPigModel1, this->pigShader, 0
     );
+    std::shared_ptr<GameObject> gunItemGameObject =
+        std::make_shared<Item>("GUN1", glm::vec3(10, 10, 10), gun1Model, pigShader, 2.0, outlineShader);
     piggyGameObject->initialize();
+    gunItemGameObject->initialize();
     if (auto piggyPtr = std::dynamic_pointer_cast<Piggy>(piggyGameObject)) {
         piggyPtr->addToWorld(this->world);
     }
+    if (auto gunPtr = std::dynamic_pointer_cast<Item>(gunItemGameObject)) {
+        gunPtr->addToWorld(this->world);
+    }
     this->addGameObject(piggyGameObject);
+    this->addGameObject(gunItemGameObject);
     this->terrain = std::make_shared<Terrain>(*this->sceneTerrainModel);
     this->terrain->initTerrain();
     this->terrain->addToWorld(world);

@@ -41,9 +41,13 @@ void Player::initialize() {
     this->playerRigidBody->setUserPointer(this);
     this->initialized=true;
     this->healthText = new UITextElement("resources/text/Angelic Peace.ttf", "X", 48, 0, 0);
+    this->helpText = new UITextElement("resources/text/Angelic Peace.ttf", "", 24, -20, -100);
     this->healthText->setAnchorType(BOTTOM_RIGHT);
+    this->helpText->setAnchorType(DEAD_CENTER);
     this->healthText->setText(std::to_string(this->health));
+    this->helpText->setText("HELPTEST");
     this->uiCallback.addTextElement(this->healthText);
+    this->uiCallback.addTextElement(this->helpText);
 
     this->playerShader = std::make_shared<Shader>("src/shaders/armaturegameobject.vs", "src/shaders/superbasic.fs");
     this->playerModel = std::make_shared<Model>((char*)playerModelPath.data());
@@ -313,8 +317,11 @@ void Player::pollInteractables() {
         GameObject* hitObject = (GameObject*)RayCallback.m_collisionObject->getUserPointer();
         if(hitObject != nullptr) {
             hitObject->selected = true;
+            this->helpText->setText(hitObject->getHelpText());
             // render help text to screen
         }
+    } else {
+        this->helpText->setText("");
     }
 }
 

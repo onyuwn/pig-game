@@ -74,6 +74,7 @@ class Player : GameObject {
         std::shared_ptr<Shader> playerShader;
         std::string playerModelPath;
         UITextElement* healthText;
+        UITextElement* helpText;
         bool clickRequested;
         bool pauseRequested;
         float playerHeight = 1.0;

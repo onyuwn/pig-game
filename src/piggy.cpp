@@ -108,7 +108,7 @@ void Piggy::render(float deltaTime, glm::mat4 model, glm::mat4 view, glm::mat4 p
             this->player->takeHit(5);
             glm::vec3 knockbackForce = -this->forward * 10.0f;
             knockbackForce += glm::vec3(0.0, 5.0, 0.0);
-            printf("%s PUNCHING PLAYER\n", this->name);
+            printf("%s PUNCHING PLAYER\n", this->name.c_str());
             this->player->applyForce(knockbackForce);
         }
 
@@ -237,7 +237,7 @@ void Piggy::toggleState() {
 }
 
 std::string Piggy::getHelpText() {
-    return "";
+    return this->name;
 }
 
 int Piggy::getHealth() {

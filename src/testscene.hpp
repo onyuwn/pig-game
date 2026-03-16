@@ -6,6 +6,7 @@
 #include "base/postprocessor.hpp"
 #include "base/player.hpp"
 #include "base/uimaster.hpp"
+#include "base/item.hpp"
 #include "piggy.hpp"
 
 class TestScene : public Scene {
@@ -25,8 +26,11 @@ class TestScene : public Scene {
         std::shared_ptr<Player> player;
         std::string name;
         std::shared_ptr<Model> piggyModel;
+        std::shared_ptr<Model> gun1Model;
+        std::shared_ptr<Item> gunItem;
         std::shared_ptr<Model> shatteredPigModel1;
         std::shared_ptr<Shader> pigShader;
+        std::shared_ptr<Shader> outlineShader;
         void spawnNewPig(int pigIdx);
         Camera &camera;
         UIMaster &ui;

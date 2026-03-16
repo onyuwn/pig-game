@@ -4,8 +4,8 @@ Animator::Animator(Animation* animation) {
     mCurrentTime = 0.0;
     mCurrentAnimation = animation;
     this->isSkeletal = false;
-    mFinalBoneMatrices.reserve(100);
-    for(int i = 0; i < 100; i++) {
+    mFinalBoneMatrices.reserve(28);
+    for(int i = 0; i < 28; i++) {
         mFinalBoneMatrices.push_back(glm::mat4(1.0));
     }
 }

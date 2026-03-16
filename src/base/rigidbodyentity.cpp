@@ -9,7 +9,7 @@ RigidBodyEntity::RigidBodyEntity(std::shared_ptr<Model> entityModel,
     this->initialized = false;
     this->boundingBox = boxShape;
     this->entityMesh=nullptr;
-    std::cout << "init rigid body" << std::endl;
+    //std::cout << "init rigid body" << std::endl;
     // create rigid body
 } 
 
@@ -22,7 +22,7 @@ RigidBodyEntity::RigidBodyEntity(Mesh* entityMesh, btVector3 defaultPos,
     this->initialized = false;
     this->boundingBox = boxShape;
     this->entityModel = nullptr;
-    std::cout << "init rigid body MESH" << std::endl;
+    //std::cout << "init rigid body MESH" << std::endl;
     // create rigid body
 }
 
@@ -56,7 +56,7 @@ void RigidBodyEntity::initialize(glm::mat4 model) {
         }
 
         meshOrigin = (minVertex + maxVertex) * 0.5f;
-        printf("meshorigin: %f, %f, %f\n", meshOrigin.x, meshOrigin.y, meshOrigin.z);
+        //printf("meshorigin: %f, %f, %f\n", meshOrigin.x, meshOrigin.y, meshOrigin.z);
         // Calculate the size (width, height, depth) of the bounding box
         glm::vec3 size = maxVertex - minVertex;
 
@@ -76,7 +76,7 @@ void RigidBodyEntity::initialize(glm::mat4 model) {
         }
 
         meshOrigin = (minVertex + maxVertex) * 0.5f;
-        printf("meshorigin: %f, %f, %f\n", meshOrigin.x, meshOrigin.y, meshOrigin.z);
+        //printf("meshorigin: %f, %f, %f\n", meshOrigin.x, meshOrigin.y, meshOrigin.z);
         // Calculate the size (width, height, depth) of the bounding box
         glm::vec3 size = maxVertex - minVertex;
 
@@ -119,12 +119,13 @@ void RigidBodyEntity::initialize(glm::mat4 model) {
         startTransform.setRotation(btRot);
 
         btDefaultMotionState* motionstate = new btDefaultMotionState(startTransform);
-
+        btVector3 shapeInertia = btVector3(0.0,0.0,0.0);
+        this->entityCollisionShape->calculateLocalInertia(mass, shapeInertia);
         btRigidBody::btRigidBodyConstructionInfo rigidBodyCI(
             mass,
             motionstate,
             this->entityCollisionShape,
-            btVector3(0,0,0)
+            shapeInertia
         );
         this->entityRigidBody = new btRigidBody(rigidBodyCI);
         this->entityRigidBody->activate();

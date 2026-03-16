@@ -119,10 +119,15 @@ void UITextElement::render(float scale, glm::vec3 color, float curTime, glm::vec
 
         float xpos = this->x + ch.Bearing.x * scale;
         float ypos = this->y - ((ch.Size.y * newlineCount) - ch.Bearing.y) * scale;
-        xpos += baseX;
-        ypos += baseY;
         float w = ch.Size.x * scale;
         float h = ch.Size.y * scale;
+
+        if(this->anchorType == BOTTOM_RIGHT) {
+            baseX = windowDims.x - (this->getDims().x); // get text width
+            baseY = 0;
+        }
+        xpos += baseX;
+        ypos += baseY;
 
         float vertices[6][4] = {
             { xpos,     ypos + h,   0.0f, 0.0f },            

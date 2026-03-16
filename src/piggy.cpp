@@ -2,7 +2,7 @@
 
 Piggy::Piggy(std::string name, glm::vec3 position, float scale,
     std::shared_ptr<Model> _pigModel, std::shared_ptr<Model> _shatteredPigModel,
-    std::shared_ptr<Shader> _pigShader)
+    std::shared_ptr<Shader> _pigShader, int pigIndex)
     : name(name), interacting(false) {
     this->initialized = false;
     this->isHit = false;
@@ -21,10 +21,13 @@ Piggy::Piggy(std::string name, glm::vec3 position, float scale,
     this->shatteredPigModel = _shatteredPigModel;
     this->piggyShader = _pigShader;
     this->position = this->initialPosition;
+    this->attackSpeed = 1;
+    this->pigIndex = pigIndex;
 }
 
 void Piggy::initialize() {
     this->initialized=true;
+    this->name = "PIGGY " + std::to_string(this->pigIndex);
     //this->piggyModel = std::make_shared<Model>((char*)"resources/piggyiso.obj");
     //this->shatteredPigModel = std::make_shared<Model>((char*)"resources/pig/shatteredpig.gltf");
     //this->piggyShader = std::make_shared<Shader>("src/shaders/basic.vs", "src/shaders/basic.fs");
@@ -98,6 +101,17 @@ void Piggy::render(float deltaTime, glm::mat4 model, glm::mat4 view, glm::mat4 p
         glm::vec4 forwardUnNormal = newPiggyModelMatrix * glm::vec4(0.0, 0.0, 1.0, 0.0);
         this->piggyRigidBody->setPos(this->position);
         glm::vec3 rigidBodyPos = this->piggyRigidBody->getPos();
+
+        bool canAttack = this->canAttack(this->forward);
+        if(canHurtPlayer == true && curTime - lastPlayerHitTime > attackSpeed && this->player != nullptr) {
+            lastPlayerHitTime = curTime;
+            this->player->takeHit(5);
+            glm::vec3 knockbackForce = -this->forward * 10.0f;
+            knockbackForce += glm::vec3(0.0, 5.0, 0.0);
+            printf("%s PUNCHING PLAYER\n", this->name);
+            this->player->applyForce(knockbackForce);
+        }
+
         this->piggyShader->setMat4("model", newPiggyModelMatrix);
         this->piggyShader->setFloat("opacity", 1.0);
         this->piggyModel->draw(*this->piggyShader, curTime);
@@ -121,6 +135,7 @@ void Piggy::render(float deltaTime, glm::mat4 model, glm::mat4 view, glm::mat4 p
             this->piggyModel->draw(*this->piggyShader, curTime);
         } else if(!pigExploded || (pigExploded && curTime - hitTime < 3)) {
             for(int i = 0; i < this->shatteredPigModel->getMeshes().size(); i++) {
+                glm::mat4 newPiggyModelMatrix = glm::mat4(1.0);
                 if(shatterPiecesInPhysWorld < i + 1) { // add shattered pieces if not added already
                     this->shatteredPigRigidBodies[i]->addToWorld(this->physWorld);
                     this->shatteredPigRigidBodies[i]->entityRigidBody->activate(true);
@@ -132,31 +147,40 @@ void Piggy::render(float deltaTime, glm::mat4 model, glm::mat4 view, glm::mat4 p
                     // } else {
                     //     offset = this->forward * -4.0f;
                     // }
-                    this->shatteredPigRigidBodies[i]->setPos(this->piggyRigidBody->getPos() + offset);
+                    offset += glm::vec3(0.0, 4.0, 0.0);
+                    this->shatteredPigRigidBodies[i]->setPos(this->position + offset);
+                    newPiggyModelMatrix *= glm::inverse(
+                        glm::lookAt(
+                            glm::vec3(this->position.x + offset.x, 4.0, this->position.z + offset.x),
+                            this->forward + glm::vec3(this->position.x + offset.x, 4.0, this->position.z + offset.x),
+                            glm::vec3(0,1.0,0)
+                        )
+                    );
+                    //this->shatteredPigRigidBodies[i]->setPos(this->piggyRigidBody->getPos() + offset);
                     shatterPiecesInPhysWorld++;
+                } else {
+                    newPiggyModelMatrix = this->shatteredPigRigidBodies[i]->render(glm::mat4(1.0), false);
+                    newPiggyModelMatrix = glm::scale(newPiggyModelMatrix, glm::vec3(scale));
+                    glm::vec3 throwingForce = glm::vec3(0.0, 1.0, 0.0);
+
+                    if(i == 0) { // face
+                        throwingForce += (this->forward * -5.0f);
+                    } else if(i == 1) { // butt
+                        throwingForce += (this->forward * 5.0f);
+                    } else {
+                        throwingForce *= i;
+                    }
+                    btVector3 btForce = btVector3(throwingForce.x, throwingForce.y, throwingForce.z);
+                    if(piecesExploded < shatterPiecesInPhysWorld) {
+                        this->shatteredPigRigidBodies[i]->entityRigidBody->setCollisionFlags(0);
+                        this->shatteredPigRigidBodies[i]->entityRigidBody->applyCentralImpulse(btForce);
+                        hitTime = curTime;
+                        piecesExploded++;
+                    } else {
+                        pigExploded = true;
+                    }
                 }
 
-                glm::mat4 newPiggyModelMatrix = this->shatteredPigRigidBodies[i]->render(glm::mat4(1.0), false);
-                newPiggyModelMatrix = glm::scale(newPiggyModelMatrix, glm::vec3(scale));
-                glm::vec3 throwingForce = glm::vec3(0.0);
-                // if(i == 0) {
-                //     throwingForce = glm::vec3(0,10,0);
-                // } else if(i == 1) {
-                //     throwingForce = (this->forward * 10.0f) + glm::vec3(0.0,5.0,0.0);
-                // } else {
-                //     throwingForce = (-this->forward * 10.0f) + glm::vec3(0.0,5.0,0.0);
-                // }
-
-                if(i == 1) {
-                    throwingForce = (this->forward * 10.0f);
-                }
-                btVector3 btForce = btVector3(throwingForce.x, throwingForce.y, throwingForce.z);
-                if(!pigExploded) {
-                    this->shatteredPigRigidBodies[i]->entityRigidBody->setCollisionFlags(0);
-                    this->shatteredPigRigidBodies[i]->entityRigidBody->applyCentralImpulse(btForce);
-                    hitTime = curTime;
-                    pigExploded = true;
-                }
                 this->piggyShader->setMat4("model", newPiggyModelMatrix);
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -246,6 +270,24 @@ bool Piggy::playerSpotted(glm::vec3 forward) {
         }
     }
     return RayCallback.hasHit();
+}
+
+bool Piggy::canAttack(glm::vec3 forward) {
+    glm::vec3 outOrigin = getPos();
+    glm::vec3 hitEnd = outOrigin - forward * (float)8.0; // FORWARD DIR IS FLIPPED ON CHASE STATE __ idk rn
+    btCollisionWorld::ClosestRayResultCallback hitCallback(btVector3(outOrigin.x, outOrigin.y, outOrigin.z), btVector3(hitEnd.x, hitEnd.y, hitEnd.z));
+    this->physWorld->rayTest(btVector3(outOrigin.x, outOrigin.y, outOrigin.z), btVector3(hitEnd.x, hitEnd.y, hitEnd.z), hitCallback);
+    if(hitCallback.hasHit() && followingPlayer) {
+        this->player = (Player*)(hitCallback.m_collisionObject->getUserPointer());
+        if(this->player != nullptr && this->player->name == "player") {
+            this->canHurtPlayer = true;
+            this->followingPlayer = true;
+        } else {
+            this->player = nullptr;
+            this->canHurtPlayer = false;
+        }
+    }
+    return hitCallback.hasHit();
 }
 
 void Piggy::setRotation(glm::vec3 newRotation) {

@@ -31,7 +31,7 @@ class Piggy : public GameObject {
         glm::mat4 modelMatrix;
         Piggy(std::string name, glm::vec3 position, float scale, 
             std::shared_ptr<Model> _pigModel, std::shared_ptr<Model> _shatteredPigModel,
-            std::shared_ptr<Shader> _pigShader);
+            std::shared_ptr<Shader> _pigShader, int pigIndex);
         void render(float deltaTime, glm::mat4 model = glm::mat4(1.0),
                     glm::mat4 view = glm::mat4(1.0), glm::mat4 projection = glm::mat4(1.0),
                     float curTime = 0.0, glm::vec3 sceneLightPos = glm::vec3(1.0)) override;
@@ -47,6 +47,7 @@ class Piggy : public GameObject {
         void takeHit(int dmg);
         void setScale(float scale);
         bool playerSpotted(glm::vec3 forward);
+        bool canAttack(glm::vec3 forward);
         std::string getHelpText() override;
         bool shouldBeDestroyed;
         glm::vec3 getForward();
@@ -56,6 +57,7 @@ class Piggy : public GameObject {
         int health;
         bool pigExploded;
         int shatterPiecesInPhysWorld = 0;
+        int piecesExploded = 0;
         std::shared_ptr<Model> piggyModel;
         std::shared_ptr<Model> shatteredPigModel;
         std::vector<std::shared_ptr<Mesh>> shatteredPigMeshPieces;
@@ -71,6 +73,10 @@ class Piggy : public GameObject {
         float lastPlayerSpottedTime;
         float initialPlayerSpottedTime;
         bool followingPlayer;
+        bool canHurtPlayer;
+        float lastPlayerHitTime;
+        float attackSpeed;
+        int pigIndex;
 };
 
 #endif

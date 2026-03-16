@@ -14,6 +14,7 @@ Player::Player(Camera &camera, btDiscreteDynamicsWorld *world,
     this->initialized = false;
     this->uiCallback = uiCallback;
     this->name="player";
+    this->health = 100;
 }
 
 void Player::initialize() {
@@ -39,12 +40,32 @@ void Player::initialize() {
     this->name="player";
     this->playerRigidBody->setUserPointer(this);
     this->initialized=true;
+    this->healthText = new UITextElement("resources/text/Angelic Peace.ttf", "X", 48, 0, 0);
+    this->healthText->setAnchorType(BOTTOM_RIGHT);
+    this->healthText->setText(std::to_string(this->health));
+    this->uiCallback.addTextElement(this->healthText);
 
-    this->playerShader = std::make_shared<Shader>("src/shaders/superbasic.vs", "src/shaders/superbasic.fs");
+    this->playerShader = std::make_shared<Shader>("src/shaders/armaturegameobject.vs", "src/shaders/superbasic.fs");
     this->playerModel = std::make_shared<Model>((char*)playerModelPath.data());
+    Animation* restAnim = new Animation((char*)"resources/character/arms1.gltf", this->playerModel.get(), 1);
+    Animation* shootAnim = new Animation((char*)"resources/character/arms1.gltf", this->playerModel.get(), 3);
+    this->animator = std::make_shared<Animator>(restAnim);
+    this->animator->playAnimation(restAnim);
+    animations.insert({"rest", restAnim});
+    animations.insert({"shoot", shootAnim});
+    this->curAnim = restAnim;
 }
 
 void Player::render(float curTime, float deltaTime, glm::vec2 windowDims) {
+    if(curAnim != nullptr && playingAnimation && curTime - animationStart < (curAnim->getDuration() / curAnim->getTicksPerSecond())) {
+        this->animator->updateAnimation(deltaTime);
+    } else {
+        playingAnimation = false;
+        curAnim = this->animations["rest"];
+        this->animator->playAnimation(curAnim);
+        this->animator->updateAnimation(deltaTime);
+    }
+    this->healthText->setText(std::to_string(this->health));
     glm::mat4 model = glm::translate(glm::mat4(1.0), getPlayerPos() - glm::vec3(0, .25, 0)); // ARM ADJUST
     model = glm::scale(model, glm::vec3(.25, .25, .25));
     model *= glm::mat4(getPlayerRotationMatrix());
@@ -53,9 +74,15 @@ void Player::render(float curTime, float deltaTime, glm::vec2 windowDims) {
     glm::mat4 view = camera.GetViewMatrix(getPlayerPos());
 
     this->playerShader->use();
+    auto transforms = this->animator->getFinalBoneMatrices();
     playerShader->setMat4("projection", projection);
     playerShader->setMat4("view", view);
     playerShader->setMat4("model", model);
+    playerShader->setVec3("lightPos", this->getPlayerHandPos());
+    playerShader->setVec3("lightColor", glm::vec3(1.0, 1.0, 1.0));
+    for (int i = 0; i < transforms.size(); ++i) {
+        this->playerShader->setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
+    }
     this->playerModel->draw(*this->playerShader, curTime);
 }
 
@@ -123,7 +150,11 @@ void Player::processInput(GLFWwindow *window, float curTime, float deltaTime, bo
     }
 
     if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE && clickRequested) {
-        this->uiCallback.checkClick(xPos, (yPos - 600) * -1);
+        if(pauseRequested) {
+            this->uiCallback.checkClick(xPos, (yPos - 600) * -1);
+        } else { // USE ITEM
+            this->interact(curTime);
+        }
         clickRequested = false;
     }
 
@@ -248,6 +279,10 @@ void Player::interact(float curTime) {
             } else if(interactionType == TOGGLE) {
                 hitObject->toggleState();
             } else if(interactionType == HIT) {
+                curAnim = this->animations["shoot"];
+                this->animator->playAnimation(curAnim);
+                playingAnimation = true;
+                animationStart = curTime;
                 std::cout <<"HIT\n";
                 hitObject->takeHit(10);
             }
@@ -262,6 +297,10 @@ void Player::interact(float curTime) {
         this->heldItem = nullptr;
         itemInHand = false;
     }
+}
+
+void Player::useItem() {
+    
 }
 
 void Player::pollInteractables() {
@@ -310,12 +349,14 @@ void Player::setPos(std::function<glm::vec3()> posCallback) {
 
 }
 
-void Player::applyForce(glm::vec3) {
-
+void Player::applyForce(glm::vec3 force) {
+    btVector3 btForce = btVector3(force.x, force.y, force.z);
+    this->playerRigidBody->applyCentralImpulse(btForce);
 }
 
 void Player::takeHit(int dmg) {
-
+    this->health -= dmg;
+    this->healthText->setText(std::to_string(this->health));
 }
 
 void Player::setScale(float scale) {

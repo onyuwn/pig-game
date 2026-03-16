@@ -7,7 +7,7 @@ TestScene::TestScene(std::string name, Camera &camera, UIMaster &ui) : initializ
 
 void TestScene::render(float deltaTime, float curTime, GLFWwindow *window, glm::vec2 windowDims) {
     if(this->initialized) {
-        this->postProcessor->begin();
+        //this->postProcessor->begin();
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
@@ -45,7 +45,7 @@ void TestScene::render(float deltaTime, float curTime, GLFWwindow *window, glm::
         this->ui.gamePaused = this->paused;
         this->ui.render(deltaTime, curTime, windowDims);
         // this->skybox->render(glm::mat4(glm::mat3(view)), projection);
-        this->postProcessor->render(curTime, windowDims);
+        //this->postProcessor->render(curTime, windowDims);
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
@@ -56,7 +56,7 @@ void TestScene::initialize(std::function<void(float, std::string)> progressCallb
     this->sceneShader = std::make_shared<Shader>("src/shaders/basic.vs", "src/shaders/basic.fs");
     this->paused = false;
     this->piggyModel = std::make_shared<Model>((char*)"resources/pig/basepig/pigwalking2.gltf");
-    this->shatteredPigModel1 = std::make_shared<Model>((char*)"resources/pig/pigshatter3ahh.gltf");
+    this->shatteredPigModel1 = std::make_shared<Model>((char*)"resources/pig/shatters/shatteredpig5.gltf");
     this->pigShader = std::make_shared<Shader>("src/shaders/basic.vs", "src/shaders/basic.fs");
     progressCallback(.25f, "initializing physics...");
     btBroadphaseInterface* broadphase = new btDbvtBroadphase();
@@ -71,7 +71,7 @@ void TestScene::initialize(std::function<void(float, std::string)> progressCallb
     progressCallback(.25f, "initializing terrain...");
     this->sceneTerrainModel = std::make_shared<Model>((char*)"resources/testfloor.obj");
     std::shared_ptr<GameObject> piggyGameObject =
-        std::make_shared<Piggy>("piggy", glm::vec3(0, 8, -20), 2.0, this->piggyModel, this->shatteredPigModel1, this->pigShader
+        std::make_shared<Piggy>("piggy", glm::vec3(0, 8, -20), 2.0, this->piggyModel, this->shatteredPigModel1, this->pigShader, 0
     );
     piggyGameObject->initialize();
     if (auto piggyPtr = std::dynamic_pointer_cast<Piggy>(piggyGameObject)) {
@@ -82,7 +82,7 @@ void TestScene::initialize(std::function<void(float, std::string)> progressCallb
     this->terrain->initTerrain();
     this->terrain->addToWorld(world);
 
-    this->player = std::make_shared<Player>(camera, this->world, ui, physDebugOn, "resources/character/player1test.gltf");
+    this->player = std::make_shared<Player>(camera, this->world, ui, physDebugOn, "resources/character/arms1.gltf");
     player->initialize();
     this->player->addToWorld(this->world);
 
@@ -100,7 +100,7 @@ void TestScene::spawnNewPig(int pigIdx) {
     int zRand = (rand() % 100) - 50;
     std::shared_ptr<GameObject> piggyGameObject = 
         std::make_shared<Piggy>(
-            "piggy", glm::vec3(xRand, yRand, zRand), 2.0, this->piggyModel, this->shatteredPigModel1, this->pigShader
+            "piggy", glm::vec3(xRand, yRand, zRand), 2.0, this->piggyModel, this->shatteredPigModel1, this->pigShader, pigIdx
         );
     piggyGameObject->initialize();
     if (auto piggyPtr = std::dynamic_pointer_cast<Piggy>(piggyGameObject)) {

@@ -15,6 +15,8 @@
 #include "uimaster.hpp"
 #include "gameobject.hpp"
 #include "gameobjectinteractiontype.hpp"
+#include "animation.hpp"
+#include "animator.hpp"
 
 class Player : GameObject {
     public:
@@ -28,6 +30,7 @@ class Player : GameObject {
         void processInput(GLFWwindow *window, float curTime, float deltaTime, bool &pauseCallback);
         void addToWorld(btDiscreteDynamicsWorld * world);
         void interact(float curTime);
+        void useItem();
         bool checkGrounded();
         glm::vec3 getPlayerPos();
         glm::vec3 getPlayerHandPos();
@@ -52,9 +55,14 @@ class Player : GameObject {
         glm::vec3 rotation;
         std::string name;
         void notifySpotted();
+        std::shared_ptr<Animator> animator;
     private:
         Camera &camera;
-        btDiscreteDynamicsWorld *world;
+        btDiscreteDynamicsWorld* world;
+        std::map<std::string, Animation*> animations;
+        Animation* curAnim;
+        bool playingAnimation;
+        float animationStart;
         bool interactRequested;
         bool controlsDisabled;
         UIMaster &uiCallback;
@@ -65,9 +73,11 @@ class Player : GameObject {
         std::shared_ptr<Model> playerModel;
         std::shared_ptr<Shader> playerShader;
         std::string playerModelPath;
+        UITextElement* healthText;
         bool clickRequested;
         bool pauseRequested;
         float playerHeight = 1.0;
+        int health = 100;
         int aggroCount = 0;
 };
 #endif

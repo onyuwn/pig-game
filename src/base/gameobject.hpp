@@ -17,8 +17,9 @@ class GameObject {
         virtual void takeHit(int dmg) = 0;
         virtual void toggleRigidBody() = 0;
         virtual void toggleState() = 0; // door
+        virtual void setSelected(bool selected) = 0;
         virtual std::string getHelpText() = 0;
-        bool selected = false;
+        bool selected;
         virtual void setScale(float scale) = 0;
         bool shouldBeDestroyed = false;
         virtual glm::vec3 getForward() = 0;

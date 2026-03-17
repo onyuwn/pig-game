@@ -2,7 +2,7 @@
 
 Piggy::Piggy(std::string name, glm::vec3 position, float scale,
     std::shared_ptr<Model> _pigModel, std::shared_ptr<Model> _shatteredPigModel,
-    std::shared_ptr<Shader> _pigShader, int pigIndex)
+    std::shared_ptr<Shader> _pigShader, int pigIndex, std::shared_ptr<Shader> outlineShader)
     : name(name), interacting(false) {
     this->initialized = false;
     this->isHit = false;
@@ -23,6 +23,8 @@ Piggy::Piggy(std::string name, glm::vec3 position, float scale,
     this->position = this->initialPosition;
     this->attackSpeed = 1;
     this->pigIndex = pigIndex;
+    this->outlineShader = outlineShader;
+    this->selected = false;
 }
 
 void Piggy::initialize() {
@@ -64,6 +66,17 @@ void Piggy::addToWorld(btDiscreteDynamicsWorld *world) {
 }
 
 void Piggy::render(float deltaTime, glm::mat4 model, glm::mat4 view, glm::mat4 projection, float curTime, glm::vec3 sceneLightPos) {
+    if(this->selected) {
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+        glEnable(GL_STENCIL_TEST);
+        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+        glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+        glStencilMask(0x00);
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        glStencilMask(0xFF);
+    }
+
     this->piggyShader->use();
     this->piggyShader->setFloat("sceneTime", curTime);
     this->piggyShader->setFloat("hitTime", hitTime);
@@ -111,7 +124,7 @@ void Piggy::render(float deltaTime, glm::mat4 model, glm::mat4 view, glm::mat4 p
             printf("%s PUNCHING PLAYER\n", this->name.c_str());
             this->player->applyForce(knockbackForce);
         }
-
+        this->piggyModelMatrix = newPiggyModelMatrix;
         this->piggyShader->setMat4("model", newPiggyModelMatrix);
         this->piggyShader->setFloat("opacity", 1.0);
         this->piggyModel->draw(*this->piggyShader, curTime);
@@ -210,6 +223,24 @@ void Piggy::render(float deltaTime, glm::mat4 model, glm::mat4 view, glm::mat4 p
             shouldBeDestroyed = true;
         }
     }
+
+    if(this->selected) {
+        glEnable(GL_CULL_FACE);
+        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+        glStencilMask(0x00);
+        this->outlineShader->use();
+        glm::mat4 finalItemModelMatrix = glm::scale(this->piggyModelMatrix, glm::vec3(this->scale));
+        this->outlineShader->setMat4("model", finalItemModelMatrix);
+        this->outlineShader->setMat4("view", view);
+        this->outlineShader->setMat4("projection", projection);
+        this->outlineShader->setFloat("curTime", curTime);
+        this->piggyModel->draw(*this->outlineShader);
+        glStencilMask(0xFF);
+        glStencilFunc(GL_ALWAYS, 0, 0xFF);
+        glEnable(GL_DEPTH_TEST);
+        glDisable(GL_CULL_FACE);
+    }
+    this->selected = false;
 }
 
 GameObjectInteractionType Piggy::getInteraction() {
@@ -251,6 +282,10 @@ void Piggy::takeHit(int dmg) {
 
 void Piggy::setScale(float scale) {
     this->scale = scale;
+}
+
+void Piggy::setSelected(bool selected) {
+    this->selected = selected;
 }
 
 bool Piggy::playerSpotted(glm::vec3 forward) {

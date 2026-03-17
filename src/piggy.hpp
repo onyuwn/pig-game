@@ -31,7 +31,7 @@ class Piggy : public GameObject {
         glm::mat4 modelMatrix;
         Piggy(std::string name, glm::vec3 position, float scale, 
             std::shared_ptr<Model> _pigModel, std::shared_ptr<Model> _shatteredPigModel,
-            std::shared_ptr<Shader> _pigShader, int pigIndex);
+            std::shared_ptr<Shader> _pigShader, int pigIndex, std::shared_ptr<Shader> outlineShader);
         void render(float deltaTime, glm::mat4 model = glm::mat4(1.0),
                     glm::mat4 view = glm::mat4(1.0), glm::mat4 projection = glm::mat4(1.0),
                     float curTime = 0.0, glm::vec3 sceneLightPos = glm::vec3(1.0)) override;
@@ -45,6 +45,7 @@ class Piggy : public GameObject {
         void toggleState() override;
         int getHealth();
         void takeHit(int dmg);
+        void setSelected(bool selected);
         void setScale(float scale);
         bool playerSpotted(glm::vec3 forward);
         bool canAttack(glm::vec3 forward);
@@ -52,6 +53,7 @@ class Piggy : public GameObject {
         bool shouldBeDestroyed;
         glm::vec3 getForward();
         void setRotation(glm::vec3 newRotation);
+        std::shared_ptr<Shader> outlineShader;
         glm::vec3 rotation;
     private:
         int health;

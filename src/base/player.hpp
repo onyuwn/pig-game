@@ -17,6 +17,7 @@
 #include "gameobjectinteractiontype.hpp"
 #include "animation.hpp"
 #include "animator.hpp"
+#include "item.hpp"
 
 class Player : GameObject {
     public:
@@ -33,7 +34,6 @@ class Player : GameObject {
         void useItem();
         bool checkGrounded();
         glm::vec3 getPlayerPos();
-        glm::vec3 getPlayerHandPos();
         glm::mat3 getPlayerRotationMatrix();
         bool isAlive();
         bool isControlDisabled();
@@ -52,10 +52,15 @@ class Player : GameObject {
         bool selected = false;
         bool shouldBeDestroyed = false;
         glm::vec3 getForward();
+        glm::vec3 getRight();
         glm::vec3 rotation;
         std::string name;
         void notifySpotted();
         std::shared_ptr<Animator> animator;
+        glm::vec3 Player::getPlayerRightHandPos();
+        glm::mat4 Player:: getPlayerRightHandTransform();
+        glm::vec3 Player::getPlayerLeftHandPos();
+        void setSelected(bool selected);
     private:
         Camera &camera;
         btDiscreteDynamicsWorld* world;
@@ -68,8 +73,13 @@ class Player : GameObject {
         UIMaster &uiCallback;
         bool &physDebugOn;
         bool initialized;
-        GameObject* heldItem;
+        Item* leftHandItem;
+        Item* rightHandItem;
         bool itemInHand;
+        float itemHeldTime;
+        float itemHoldStart;
+        Bone* leftHandBone;
+        Bone* rightHandBone;
         std::shared_ptr<Model> playerModel;
         std::shared_ptr<Shader> playerShader;
         std::string playerModelPath;

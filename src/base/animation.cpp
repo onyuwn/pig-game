@@ -21,6 +21,16 @@ Bone* Animation::findBone(const std::string& name) {
     else return &(*iter);
 }
 
+int Animation::findBoneIndex(std::string name) {
+    int index = 0;
+    for(int i = 0; i < this->mBones.size(); i++) {
+        if(this->mBones[i].getBoneName() == name) {
+            index = i;
+        }
+    }
+    return index;
+}
+
 void Animation::readMissingBones(const aiAnimation* animation, Model& model) {
     int size = animation->mNumChannels;
     std::cout << "NUM CHANNELS " << size << std::endl;

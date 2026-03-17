@@ -20,8 +20,11 @@ class Animator {
         void calculateBoneTransform(const AssimpNodeData* node, glm::mat4 parentTransform);
         glm::mat4 calculateTransformFromAnimation();
         std::vector<glm::mat4> getFinalBoneMatrices();
+        int findBoneIndex(std::string boneName);    
+        glm::mat4 getGlobalBoneTransform(std::string boneName);
     private:
         std::vector<glm::mat4> mFinalBoneMatrices;
+        std::vector<glm::mat4> mGlobalBoneMatrices;
         Animation* mCurrentAnimation;
         float mCurrentTime;
         float mDeltaTime;

@@ -64,7 +64,6 @@ void Player::render(float curTime, float deltaTime, glm::vec2 windowDims) {
     if(curAnim != nullptr && playingAnimation && curTime - animationStart < (curAnim->getDuration() / curAnim->getTicksPerSecond())) {
         this->animator->updateAnimation(deltaTime);
     } else {
-        playingAnimation = false;
         curAnim = this->animations["rest"];
         this->animator->playAnimation(curAnim);
         this->animator->updateAnimation(deltaTime);
@@ -82,7 +81,7 @@ void Player::render(float curTime, float deltaTime, glm::vec2 windowDims) {
     playerShader->setMat4("projection", projection);
     playerShader->setMat4("view", view);
     playerShader->setMat4("model", model);
-    playerShader->setVec3("lightPos", this->getPlayerHandPos());
+    playerShader->setVec3("lightPos", this->getPlayerRightHandPos());
     playerShader->setVec3("lightColor", glm::vec3(1.0, 1.0, 1.0));
     for (int i = 0; i < transforms.size(); ++i) {
         this->playerShader->setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
@@ -142,6 +141,10 @@ void Player::processInput(GLFWwindow *window, float curTime, float deltaTime, bo
     glm::vec3 cameraRightNormal = glm::normalize(glm::vec3(this->camera.Right.x, 0, this->camera.Right.z));
     btVector3 btFront = btVector3(cameraFrontNormal.x, 0, cameraFrontNormal.z); // todo use y component if grounded?
     btVector3 btRight = btVector3(cameraRightNormal.x, 0, cameraRightNormal.z);
+
+    if(itemInHand) {
+        itemHeldTime = curTime - itemHoldStart;
+    }
 
     btVector3 force(0, 0, 0);  // Reset force each frame
 
@@ -275,11 +278,14 @@ void Player::interact(float curTime) {
                 //     controlsDisabled = true;
                 // }
             } else if(interactionType == HOLD_ITEM) {
-                hitObject->setPos([this]() { return getPlayerHandPos(); });
+                hitObject->setPos([this]() { return getPlayerRightHandPos(); });
+                ((Item*)hitObject)->setForward([this]() { return getForward(); });
+                ((Item*)hitObject)->setParentTransform([this]() { return getPlayerRightHandTransform(); });
+                this->itemHoldStart = curTime;
                 this->itemInHand = true;
-                this->heldItem = hitObject;
+                this->rightHandItem = (Item*)hitObject;
             } else if(interactionType == THROW_ITEM) {
-                hitObject->applyForce(getPlayerHandPos()); // need to reactivate the rigid body of the interactive entity
+                hitObject->applyForce(getPlayerRightHandPos()); // need to reactivate the rigid body of the interactive entity
             } else if(interactionType == TOGGLE) {
                 hitObject->toggleState();
             } else if(interactionType == HIT) {
@@ -294,17 +300,21 @@ void Player::interact(float curTime) {
             std::cout <<"NADA\n";
         }
     } else if(itemInHand) { // throw that shit
-        this->heldItem->toggleRigidBody();
+        this->rightHandItem->toggleRigidBody();
         glm::vec3 throwingForce = this->camera.Front * 5.0f + glm::vec3(0,5,0);
-        this->heldItem->applyForce(throwingForce);
+        this->rightHandItem->applyForce(throwingForce);
         // apply force
-        this->heldItem = nullptr;
+        this->rightHandItem = nullptr;
         itemInHand = false;
     }
 }
 
 void Player::useItem() {
     
+}
+
+void Player::setSelected(bool selected) {
+    this->selected = selected;
 }
 
 void Player::pollInteractables() {
@@ -316,7 +326,7 @@ void Player::pollInteractables() {
         // set gameobject as selected
         GameObject* hitObject = (GameObject*)RayCallback.m_collisionObject->getUserPointer();
         if(hitObject != nullptr) {
-            hitObject->selected = true;
+            hitObject->setSelected(true);
             this->helpText->setText(hitObject->getHelpText());
             // render help text to screen
         }
@@ -332,8 +342,20 @@ glm::vec3 Player::getPlayerPos() {
     return glm::vec3(curPos.x(), curPos.y() + playerHeight, curPos.z());
 }
 
-glm::vec3 Player::getPlayerHandPos() {
-    return getPlayerPos() + this->camera.Front * 2.0f;
+glm::vec3 Player::getPlayerRightHandPos() {
+    return this->getPlayerPos() + ((glm::vec3)this->animator->getGlobalBoneTransform("Bone.003.L")[3] * -this->getForward());
+}
+
+glm::mat4 Player::getPlayerRightHandTransform() {
+    glm::mat4 model = glm::translate(glm::mat4(1.0), getPlayerPos()); // ARM ADJUST
+    //model = glm::scale(model, glm::vec3(.25, .25, .25));
+    model *= glm::mat4(getPlayerRotationMatrix());
+    return model * glm::translate(glm::mat4(1.0), (glm::vec3)this->animator->getGlobalBoneTransform("Bone.003.L")[3]) * glm::translate(glm::mat4(1.0), glm::vec3(-0.35, 0.0, 1.25));
+    //return model * glm::translate(glm::mat4(1.0), (glm::vec3)this->animator->getGlobalBoneTransform("Bone.003.L")[3]) * glm::mat4(getPlayerRotationMatrix()) * glm::translate(glm::mat4(1.0), glm::vec3(-0.25, 0.0, 1.25));
+}
+
+glm::vec3 Player::getPlayerLeftHandPos() {
+    return this->getPlayerPos() + (glm::vec3)this->animator->getGlobalBoneTransform("Bone.003.R")[3]; 
 }
 
 glm::mat3 Player::getPlayerRotationMatrix() {
@@ -384,6 +406,10 @@ std::string Player::getHelpText() {
 
 glm::vec3 Player::getForward() {
     return this->camera.Front;
+}
+
+glm::vec3 Player::getRight() {
+    return this->camera.Right;
 }
 
 GameObjectInteractionType Player::getInteraction() {

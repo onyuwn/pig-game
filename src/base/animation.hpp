@@ -27,6 +27,7 @@ class Animation
         Animation() = default;
         Animation(const std::string& animationPath, Model* model, int animIndex = 0);
         Bone* findBone(const std::string& name);
+        int findBoneIndex(std::string boneName);
 
         inline float getTicksPerSecond() { return mTicksPerSecond; }
         inline float getDuration() { return mDuration;}

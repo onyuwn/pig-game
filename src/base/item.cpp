@@ -8,6 +8,8 @@ Item::Item(std::string name, glm::vec3 position, std::shared_ptr<Model> itemMode
     this->itemShader = itemShader;
     this->outlineShader = outlineShader;
     this->scale = scale;
+    this->itemHeld = false;
+    this->selected = false;
 }
 
 void Item::addToWorld(btDiscreteDynamicsWorld *world) {
@@ -29,14 +31,16 @@ void Item::initialize() {
 void Item::render(float deltaTime, glm::mat4 model,
                   glm::mat4 view, glm::mat4 projection,
                   float curTime, glm::vec3 sceneLightPos) {
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-    glEnable(GL_STENCIL_TEST);
-    glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-    glStencilMask(0x00);
-    glStencilFunc(GL_ALWAYS, 1, 0xFF);
-    glStencilMask(0xFF);
+    if(this->selected) {
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+        glEnable(GL_STENCIL_TEST);
+        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+        glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+        glStencilMask(0x00);
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        glStencilMask(0xFF);
+    }
 
     this->itemShader->use();
     this->itemShader->setFloat("sceneTime", curTime);
@@ -44,26 +48,46 @@ void Item::render(float deltaTime, glm::mat4 model,
     this->itemShader->setMat4("projection", projection);
     this->itemShader->setMat4("view", view);
     this->itemShader->setVec3("lightPos", sceneLightPos);
-    glm::mat4 itemModelMatrix = itemRigidBody->render(glm::mat4(1.0), false);
-    itemModelMatrix = glm::scale(itemModelMatrix, glm::vec3(this->scale));
+    glm::mat4 itemModelMatrix = glm::mat4(1.0);
+    if(this->itemHeld) {
+        this->position = this->positionCallback();
+        itemModelMatrix = this->parentTransformCallback();
+        //itemModelMatrix = glm::translate(itemModelMatrix, this->positionCallback());
+        // itemModelMatrix *= glm::inverse(
+        //     glm::lookAt(
+        //         glm::vec3(0.0),
+        //         this->forwardCallback(),
+        //         glm::vec3(0.0,1.0,0)
+        //     )
+        // );
+        //itemModelMatrix = itemRigidBody->re/der(itemModelMatrix, true);
+        itemModelMatrix = glm::scale(itemModelMatrix, glm::vec3(this->scale * 0.5));
+        //itemModelMatrix = glm::translate(itemModelMatrix, this->position);
+    } else {
+        itemModelMatrix = itemRigidBody->render(itemModelMatrix, false);
+        itemModelMatrix = glm::scale(itemModelMatrix, glm::vec3(this->scale));
+    }
     this->itemShader->setMat4("model", itemModelMatrix);
     this->itemShader->setFloat("opacity", 1.0);
     this->itemModel->draw(*this->itemShader, curTime);
 
-    glEnable(GL_CULL_FACE);
-    glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-    glStencilMask(0x00);
-    this->outlineShader->use();
-    glm::mat4 finalItemModelMatrix = glm::scale(itemModelMatrix, glm::vec3(1.15, 1.15, 1.15));
-    this->outlineShader->setMat4("model", finalItemModelMatrix);
-    this->outlineShader->setMat4("view", view);
-    this->outlineShader->setMat4("projection", projection);
-    this->outlineShader->setFloat("curTime", curTime);
-    this->itemModel->draw(*this->outlineShader);
-    glStencilMask(0xFF);
-    glStencilFunc(GL_ALWAYS, 0, 0xFF);
-    glEnable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
+    if(this->selected) {
+        glEnable(GL_CULL_FACE);
+        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+        glStencilMask(0x00);
+        this->outlineShader->use();
+        glm::mat4 finalItemModelMatrix = glm::scale(itemModelMatrix, glm::vec3(1.15, 1.15, 1.15));
+        this->outlineShader->setMat4("model", finalItemModelMatrix);
+        this->outlineShader->setMat4("view", view);
+        this->outlineShader->setMat4("projection", projection);
+        this->outlineShader->setFloat("curTime", curTime);
+        this->itemModel->draw(*this->outlineShader);
+        glStencilMask(0xFF);
+        glStencilFunc(GL_ALWAYS, 0, 0xFF);
+        glEnable(GL_DEPTH_TEST);
+        glDisable(GL_CULL_FACE);
+    }
+    this->selected = false;
 }
 
 
@@ -76,6 +100,15 @@ void Item::setPosition(glm::vec3 newPos) {
 }
 
 void Item::setPos(std::function<glm::vec3()> posCallback) {
+    this->positionCallback = posCallback;
+}
+
+void Item::setForward(std::function<glm::vec3()> forwardCallback) {
+    this->forwardCallback = forwardCallback;
+}
+
+void Item::setParentTransform(std::function<glm::mat4()> parentTransformCallback) {
+    this->parentTransformCallback = parentTransformCallback;
 }
 
 glm::vec3 Item::getPos() {
@@ -111,5 +144,15 @@ void Item::use() {
 }
 
 GameObjectInteractionType Item::getInteraction() {
-    return COLLECT_ITEM;
+    if(!this->itemHeld) {
+        this->itemHeld = true;
+        return HOLD_ITEM;
+    } else {
+        this->itemHeld = false;
+        return THROW_ITEM;
+    }
+}
+
+void Item::setSelected(bool selected) {
+    this->selected = selected;
 }

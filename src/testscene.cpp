@@ -22,7 +22,7 @@ void TestScene::render(float deltaTime, float curTime, GLFWwindow *window, glm::
         sceneShader->setMat4("view", view);
         sceneShader->setFloat("amgientStrength", .25);
         sceneShader->setFloat("opacity", 1.0);
-        this->sceneShader->setVec3("lightPos", this->player->getPlayerHandPos());
+        this->sceneShader->setVec3("lightPos", this->player->getPlayerRightHandPos());
 
         this->sceneShader->setVec3("lightColor", glm::vec3(1.0, 1.0, 1.0));
 
@@ -32,7 +32,7 @@ void TestScene::render(float deltaTime, float curTime, GLFWwindow *window, glm::
         this->player->render(curTime, deltaTime, windowDims);
         for(int i = 0; i < this->gameObjects.size(); i++) {
             if(!this->gameObjects[i]->shouldBeDestroyed) {
-                this->gameObjects[i]->render(deltaTime, model, view, projection, curTime, this->player->getPlayerHandPos());
+                this->gameObjects[i]->render(deltaTime, model, view, projection, curTime, this->player->getPlayerRightHandPos());
             }
         }
         
@@ -73,7 +73,7 @@ void TestScene::initialize(std::function<void(float, std::string)> progressCallb
     progressCallback(.25f, "initializing terrain...");
     this->sceneTerrainModel = std::make_shared<Model>((char*)"resources/testfloor.obj");
     std::shared_ptr<GameObject> piggyGameObject =
-        std::make_shared<Piggy>("piggy", glm::vec3(0, 8, -20), 2.0, this->piggyModel, this->shatteredPigModel1, this->pigShader, 0
+        std::make_shared<Piggy>("piggy", glm::vec3(0, 8, -20), 2.0, this->piggyModel, this->shatteredPigModel1, this->pigShader, 0, this->outlineShader
     );
     std::shared_ptr<GameObject> gunItemGameObject =
         std::make_shared<Item>("GUN1", glm::vec3(10, 10, 10), gun1Model, pigShader, 2.0, outlineShader);
@@ -109,7 +109,7 @@ void TestScene::spawnNewPig(int pigIdx) {
     int zRand = (rand() % 100) - 50;
     std::shared_ptr<GameObject> piggyGameObject = 
         std::make_shared<Piggy>(
-            "piggy", glm::vec3(xRand, yRand, zRand), 2.0, this->piggyModel, this->shatteredPigModel1, this->pigShader, pigIdx
+            "piggy", glm::vec3(xRand, yRand, zRand), 2.0, this->piggyModel, this->shatteredPigModel1, this->pigShader, pigIdx, this->outlineShader
         );
     piggyGameObject->initialize();
     if (auto piggyPtr = std::dynamic_pointer_cast<Piggy>(piggyGameObject)) {

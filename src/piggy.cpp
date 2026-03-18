@@ -25,6 +25,8 @@ Piggy::Piggy(std::string name, glm::vec3 position, float scale,
     this->pigIndex = pigIndex;
     this->outlineShader = outlineShader;
     this->selected = false;
+    this->stunned = false;
+    this->stunInitiated = false;
 }
 
 void Piggy::initialize() {
@@ -100,29 +102,43 @@ void Piggy::render(float deltaTime, glm::mat4 model, glm::mat4 view, glm::mat4 p
         this->forward = newForward;
         glm::vec3 movement = this->forward * deltaTime * 4.0f;
         this->position -= movement;
+        glm::mat4 newPiggyModelMatrix = glm::mat4(1.0);
         //glm::mat4 newPiggyModelMatrix = glm::translate(glm::mat4(1.0), this->position);
         // teleport problem HEREEEughh  --- OMFG lookat rotates...and moves lmao
-        glm::mat4 newPiggyModelMatrix = glm::inverse(
-            glm::lookAt(
-                glm::vec3(this->position.x, 4.0, this->position.z),
-                direction + glm::vec3(this->position.x, 4.0, this->position.z),
-                glm::vec3(0,1.0,0)
-            )
-        );
-        newPiggyModelMatrix = glm::scale(newPiggyModelMatrix, glm::vec3(scale));
-        newPiggyModelMatrix *= animationTransform;
-        glm::vec4 forwardUnNormal = newPiggyModelMatrix * glm::vec4(0.0, 0.0, 1.0, 0.0);
-        this->piggyRigidBody->setPos(this->position);
-        glm::vec3 rigidBodyPos = this->piggyRigidBody->getPos();
 
-        bool canAttack = this->canAttack(this->forward);
-        if(canHurtPlayer == true && curTime - lastPlayerHitTime > attackSpeed && this->player != nullptr) {
-            lastPlayerHitTime = curTime;
-            this->player->takeHit(5);
-            glm::vec3 knockbackForce = -this->forward * 10.0f;
-            knockbackForce += glm::vec3(0.0, 5.0, 0.0);
-            printf("%s PUNCHING PLAYER\n", this->name.c_str());
-            this->player->applyForce(knockbackForce);
+        if(stunned && (curTime - this->stunTime < 3 || stunInitiated == false)) {
+            if(!stunInitiated) {
+                this->stunTime = curTime;
+                this->stunInitiated = true;
+            }
+            newPiggyModelMatrix *= piggyRigidBody->render(glm::mat4(1.0), false);
+            this->position = newPiggyModelMatrix[3];
+        } else {
+            newPiggyModelMatrix = glm::inverse(
+                glm::lookAt(
+                    glm::vec3(this->position.x, 4.0, this->position.z),
+                    direction + glm::vec3(this->position.x, 4.0, this->position.z),
+                    glm::vec3(0,1.0,0)
+                )
+            );
+            this->stunned = false;
+            this->stunInitiated = false;
+            newPiggyModelMatrix = glm::scale(newPiggyModelMatrix, glm::vec3(scale));
+            newPiggyModelMatrix *= animationTransform;
+            glm::vec4 forwardUnNormal = newPiggyModelMatrix * glm::vec4(0.0, 0.0, 1.0, 0.0);
+            this->piggyRigidBody->setPos(this->position);
+            glm::vec3 rigidBodyPos = this->piggyRigidBody->getPos();
+
+            bool canAttack = this->canAttack(this->forward);
+            if(canHurtPlayer == true && curTime - lastPlayerHitTime > attackSpeed && this->player != nullptr) {
+                lastPlayerHitTime = curTime;
+                this->player->takeHit(5);
+                glm::vec3 knockbackForce = -this->forward * 10.0f;
+                knockbackForce += glm::vec3(0.0, 10.0, 0.0);
+                printf("%s PUNCHING PLAYER\n", this->name.c_str());
+                this->player->applyForce(knockbackForce);
+                canHurtPlayer = false;
+            }
         }
         this->piggyModelMatrix = newPiggyModelMatrix;
         this->piggyShader->setMat4("model", newPiggyModelMatrix);
@@ -229,7 +245,7 @@ void Piggy::render(float deltaTime, glm::mat4 model, glm::mat4 view, glm::mat4 p
         glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
         glStencilMask(0x00);
         this->outlineShader->use();
-        glm::mat4 finalItemModelMatrix = glm::scale(this->piggyModelMatrix, glm::vec3(this->scale));
+        glm::mat4 finalItemModelMatrix = glm::scale(this->piggyModelMatrix, glm::vec3(1.1));
         this->outlineShader->setMat4("model", finalItemModelMatrix);
         this->outlineShader->setMat4("view", view);
         this->outlineShader->setMat4("projection", projection);
@@ -256,7 +272,13 @@ glm::vec3 Piggy::getPos() {
 }
 
 void Piggy::applyForce(glm::vec3 force) {
-    // not needed
+    std::cout << "applying force" << std::endl;
+    this->piggyRigidBody->entityRigidBody->setActivationState(1);
+    this->piggyRigidBody->entityRigidBody->activate(true);
+    btVector3 btForce = btVector3(force.x, force.y, force.z);
+    this->piggyRigidBody->entityRigidBody->setCollisionFlags(0);
+    this->piggyRigidBody->entityRigidBody->applyCentralImpulse(btForce);
+    this->stunned = true;
 }
 
 void Piggy::toggleRigidBody() {

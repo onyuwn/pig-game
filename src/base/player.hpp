@@ -31,7 +31,8 @@ class Player : GameObject {
         void processInput(GLFWwindow *window, float curTime, float deltaTime, bool &pauseCallback);
         void addToWorld(btDiscreteDynamicsWorld * world);
         void interact(float curTime);
-        void useItem();
+        void useRightHandItem(float curTime);
+        void useLeftHandItem(float curTime);
         bool checkGrounded();
         glm::vec3 getPlayerPos();
         glm::mat3 getPlayerRotationMatrix();
@@ -59,6 +60,7 @@ class Player : GameObject {
         std::shared_ptr<Animator> animator;
         glm::vec3 Player::getPlayerRightHandPos();
         glm::mat4 Player:: getPlayerRightHandTransform();
+        glm::mat4 Player:: getPlayerLeftHandTransform();
         glm::vec3 Player::getPlayerLeftHandPos();
         void setSelected(bool selected);
     private:
@@ -75,7 +77,8 @@ class Player : GameObject {
         bool initialized;
         Item* leftHandItem;
         Item* rightHandItem;
-        bool itemInHand;
+        bool itemInLeftHand;
+        bool itemInRightHand;
         float itemHeldTime;
         float itemHoldStart;
         Bone* leftHandBone;
@@ -86,8 +89,9 @@ class Player : GameObject {
         UITextElement* healthText;
         UITextElement* helpText;
         bool clickRequested;
+        bool rightClickRequested;
         bool pauseRequested;
-        float playerHeight = 1.0;
+        float playerHeight = 2.0;
         int health = 100;
         int aggroCount = 0;
 };

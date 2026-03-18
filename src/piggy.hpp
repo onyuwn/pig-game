@@ -76,6 +76,9 @@ class Piggy : public GameObject {
         float initialPlayerSpottedTime;
         bool followingPlayer;
         bool canHurtPlayer;
+        bool stunned;
+        bool stunInitiated;
+        float stunTime;
         float lastPlayerHitTime;
         float attackSpeed;
         int pigIndex;

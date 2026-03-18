@@ -2,7 +2,7 @@
 
 TestScene::TestScene(std::string name, Camera &camera, UIMaster &ui) : initialized(false), camera(camera), ui(ui), physDebugOn(false), paused(false) {
         this->lastPigSpawnTime = 0.0f;
-        this->pigSpawnFrequency = 10.0f;
+        this->pigSpawnFrequency = 3.0f;
 }
 
 void TestScene::render(float deltaTime, float curTime, GLFWwindow *window, glm::vec2 windowDims) {
@@ -57,6 +57,7 @@ void TestScene::initialize(std::function<void(float, std::string)> progressCallb
     this->paused = false;
     this->piggyModel = std::make_shared<Model>((char*)"resources/pig/basepig/pigwalking2.gltf");
     this->gun1Model = std::make_shared<Model>((char*)"resources/items/testgun1.gltf");
+    this->hourGlassModel = std::make_shared<Model>((char*)"resources/items/hourglass.gltf");
     this->shatteredPigModel1 = std::make_shared<Model>((char*)"resources/pig/shatters/shatteredpig5.gltf");
     this->pigShader = std::make_shared<Shader>("src/shaders/basic.vs", "src/shaders/basic.fs");
     this->outlineShader = std::make_shared<Shader>("src/shaders/outline.vs", "src/shaders/outline.fs");
@@ -76,7 +77,10 @@ void TestScene::initialize(std::function<void(float, std::string)> progressCallb
         std::make_shared<Piggy>("piggy", glm::vec3(0, 8, -20), 2.0, this->piggyModel, this->shatteredPigModel1, this->pigShader, 0, this->outlineShader
     );
     std::shared_ptr<GameObject> gunItemGameObject =
-        std::make_shared<Item>("GUN1", glm::vec3(10, 10, 10), gun1Model, pigShader, 2.0, outlineShader);
+        std::make_shared<Item>("GUN1", glm::vec3(10, 10, 10), gun1Model, pigShader, 2.0, outlineShader, glm::vec3(.125));
+    std::shared_ptr<GameObject> hourglassGameObject =
+        std::make_shared<Item>("HOURGLASS", glm::vec3(10, 10, -10), hourGlassModel, pigShader, 2.0, outlineShader, glm::vec3(.05));
+    hourglassGameObject->initialize();
     piggyGameObject->initialize();
     gunItemGameObject->initialize();
     if (auto piggyPtr = std::dynamic_pointer_cast<Piggy>(piggyGameObject)) {
@@ -85,13 +89,17 @@ void TestScene::initialize(std::function<void(float, std::string)> progressCallb
     if (auto gunPtr = std::dynamic_pointer_cast<Item>(gunItemGameObject)) {
         gunPtr->addToWorld(this->world);
     }
+    if (auto hourglassPtr = std::dynamic_pointer_cast<Item>(hourglassGameObject)) {
+        hourglassPtr->addToWorld(this->world);
+    }
     this->addGameObject(piggyGameObject);
     this->addGameObject(gunItemGameObject);
+    this->addGameObject(hourglassGameObject);
     this->terrain = std::make_shared<Terrain>(*this->sceneTerrainModel);
     this->terrain->initTerrain();
     this->terrain->addToWorld(world);
 
-    this->player = std::make_shared<Player>(camera, this->world, ui, physDebugOn, "resources/character/arms1.gltf");
+    this->player = std::make_shared<Player>(camera, this->world, ui, physDebugOn, "resources/character/arms2.gltf");
     player->initialize();
     this->player->addToWorld(this->world);
 

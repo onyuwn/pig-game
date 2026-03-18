@@ -1,7 +1,8 @@
 #include "item.hpp"
 
 Item::Item(std::string name, glm::vec3 position, std::shared_ptr<Model> itemModel,
-            std::shared_ptr<Shader> itemShader, float scale, std::shared_ptr<Shader> outlineShader) {
+            std::shared_ptr<Shader> itemShader, float scale, std::shared_ptr<Shader> outlineShader,
+            glm::vec3 holdingScaleFactor) {
     this->name = name;
     this->position = position;
     this->itemModel = itemModel;
@@ -10,6 +11,7 @@ Item::Item(std::string name, glm::vec3 position, std::shared_ptr<Model> itemMode
     this->scale = scale;
     this->itemHeld = false;
     this->selected = false;
+    this->holdingScaleFactor = holdingScaleFactor;
 }
 
 void Item::addToWorld(btDiscreteDynamicsWorld *world) {
@@ -60,8 +62,8 @@ void Item::render(float deltaTime, glm::mat4 model,
         //         glm::vec3(0.0,1.0,0)
         //     )
         // );
-        //itemModelMatrix = itemRigidBody->re/der(itemModelMatrix, true);
-        itemModelMatrix = glm::scale(itemModelMatrix, glm::vec3(this->scale * 0.5));
+        itemRigidBody->render(itemModelMatrix, true);
+        itemModelMatrix = glm::scale(itemModelMatrix, glm::vec3(this->scale * this->holdingScaleFactor));
         //itemModelMatrix = glm::translate(itemModelMatrix, this->position);
     } else {
         itemModelMatrix = itemRigidBody->render(itemModelMatrix, false);
@@ -92,7 +94,7 @@ void Item::render(float deltaTime, glm::mat4 model,
 
 
 std::string Item::getHelpText() {
-    return "GUN";
+    return this->name;
 }
 
 void Item::setPosition(glm::vec3 newPos) {
@@ -116,7 +118,13 @@ glm::vec3 Item::getPos() {
 }
 
 void Item::applyForce(glm::vec3 force) {
-    // not needed
+    std::cout << "applying force" << std::endl;
+    this->itemHeld = false;
+    this->itemRigidBody->entityRigidBody->setActivationState(1);
+    this->itemRigidBody->entityRigidBody->activate(true);
+    btVector3 btForce = btVector3(force.x, force.y, force.z);
+    this->itemRigidBody->entityRigidBody->setCollisionFlags(0);
+    this->itemRigidBody->entityRigidBody->applyCentralImpulse(btForce);
 }
 
 void Item::toggleRigidBody() {
@@ -145,10 +153,8 @@ void Item::use() {
 
 GameObjectInteractionType Item::getInteraction() {
     if(!this->itemHeld) {
-        this->itemHeld = true;
         return HOLD_ITEM;
     } else {
-        this->itemHeld = false;
         return THROW_ITEM;
     }
 }

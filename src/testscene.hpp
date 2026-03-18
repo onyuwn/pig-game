@@ -27,6 +27,7 @@ class TestScene : public Scene {
         std::string name;
         std::shared_ptr<Model> piggyModel;
         std::shared_ptr<Model> gun1Model;
+        std::shared_ptr<Model> hourGlassModel;
         std::shared_ptr<Item> gunItem;
         std::shared_ptr<Model> shatteredPigModel1;
         std::shared_ptr<Shader> pigShader;

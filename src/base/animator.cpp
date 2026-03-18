@@ -24,7 +24,7 @@ void Animator::updateAnimation(float dt) {
 
 void Animator::playAnimation(Animation* pAnimation) {
     mCurrentAnimation = pAnimation;
-    //mCurrentTime = 0.0f;
+    mCurrentTime = 0.0f;
 }
 
 glm::mat4 Animator::calculateTransformFromAnimation() {

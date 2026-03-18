@@ -150,6 +150,8 @@ glm::vec3 RigidBodyEntity::getPos() {
 glm::mat4 RigidBodyEntity::render(glm::mat4 model, bool positionOverride) {
     if(positionOverride) {
         this->entityRigidBody->activate(false);
+        this->entityRigidBody->setActivationState(0);
+        this->entityRigidBody->setCollisionFlags(this->entityRigidBody->getCollisionFlags() | btCollisionObject::CF_NO_CONTACT_RESPONSE);
         this->setPos(model[3]);
     } else {
         btTransform curTransform = this->entityRigidBody->getWorldTransform();

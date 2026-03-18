@@ -5,16 +5,20 @@ Player::Player(Camera &camera, btDiscreteDynamicsWorld *world,
                 : camera(camera), uiCallback(uiCallback), physDebugOn(physDebugOn),
                   playerModelPath(playerModelPath),
                   pauseRequested(false),
-                  controlsDisabled(false), itemInHand(false), name("player") {
+                  controlsDisabled(false), itemInRightHand(false), itemInLeftHand(false), name("player") {
     this->camera = camera;
     this->world = world;
         // build collision shape (box for rn)
-    this->playerCollisionShape = new btCapsuleShape(1.0, 2.0);
+    this->playerCollisionShape = new btCapsuleShape(4.0, 2.0);
     // create rigid body
     this->initialized = false;
     this->uiCallback = uiCallback;
     this->name="player";
     this->health = 100;
+    this->leftHandItem = nullptr;
+    this->rightHandItem = nullptr;
+    this->clickRequested = false;
+    this->rightClickRequested = false;
 }
 
 void Player::initialize() {
@@ -51,12 +55,18 @@ void Player::initialize() {
 
     this->playerShader = std::make_shared<Shader>("src/shaders/armaturegameobject.vs", "src/shaders/superbasic.fs");
     this->playerModel = std::make_shared<Model>((char*)playerModelPath.data());
-    Animation* restAnim = new Animation((char*)"resources/character/arms1.gltf", this->playerModel.get(), 1);
-    Animation* shootAnim = new Animation((char*)"resources/character/arms1.gltf", this->playerModel.get(), 3);
+    Animation* restAnim = new Animation((char*)"resources/character/arms2.gltf", this->playerModel.get(), 1);
+    Animation* shootAnim = new Animation((char*)"resources/character/arms2.gltf", this->playerModel.get(), 3);
+    Animation* shoveAnim = new Animation((char*)"resources/character/arms2.gltf", this->playerModel.get(), 5);
+    Animation* throwLAnim = new Animation((char*)"resources/character/arms2.gltf", this->playerModel.get(), 7);
+    Animation* throwRAnim = new Animation((char*)"resources/character/arms2.gltf", this->playerModel.get(), 9);
     this->animator = std::make_shared<Animator>(restAnim);
     this->animator->playAnimation(restAnim);
     animations.insert({"rest", restAnim});
     animations.insert({"shoot", shootAnim});
+    animations.insert({"throwL", throwLAnim});
+    animations.insert({"throwR", throwRAnim});
+    animations.insert({"shove", shoveAnim});
     this->curAnim = restAnim;
 }
 
@@ -129,6 +139,32 @@ void Player::processInput(GLFWwindow *window, float curTime, float deltaTime, bo
         physDebugOn = false;
     }
 
+    if(glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS && (itemInLeftHand || itemInRightHand)) { // throw that shit
+        if(itemInRightHand && rightHandItem != nullptr) {
+            this->rightHandItem->toggleRigidBody();
+            glm::vec3 throwingForce = this->camera.Front * 5.0f + glm::vec3(0,5,0);
+            this->rightHandItem->applyForce(throwingForce);
+            // apply force
+            this->rightHandItem = nullptr;
+            this->itemInRightHand = false;
+            curAnim = this->animations["throwR"];
+            this->animator->playAnimation(curAnim);
+            animationStart = curTime;
+            playingAnimation = true;
+        } else if(itemInLeftHand && leftHandItem != nullptr) {
+            this->leftHandItem->toggleRigidBody();
+            glm::vec3 throwingForce = this->camera.Front * 5.0f + glm::vec3(0,5,0);
+            this->leftHandItem->applyForce(throwingForce);
+            // apply force
+            this->leftHandItem = nullptr;
+            this->itemInRightHand = false;
+            curAnim = this->animations["throwL"];
+            this->animator->playAnimation(curAnim);
+            animationStart = curTime;
+            playingAnimation = true;  
+        }
+    }
+
     //this->playerRigidBody->activate(true);
     float velocity = (this->camera.MovementSpeed * deltaTime);
     //std::cout << "VELOCITY: " << this->camera.MovementSpeed << " * " << deltaTime << " = " << velocity << std::endl;
@@ -142,7 +178,7 @@ void Player::processInput(GLFWwindow *window, float curTime, float deltaTime, bo
     btVector3 btFront = btVector3(cameraFrontNormal.x, 0, cameraFrontNormal.z); // todo use y component if grounded?
     btVector3 btRight = btVector3(cameraRightNormal.x, 0, cameraRightNormal.z);
 
-    if(itemInHand) {
+    if(itemInLeftHand || itemInRightHand) {
         itemHeldTime = curTime - itemHoldStart;
     }
 
@@ -156,13 +192,25 @@ void Player::processInput(GLFWwindow *window, float curTime, float deltaTime, bo
         clickRequested = true;
     }
 
+    if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) { // and menu open
+        rightClickRequested = true;
+    }
+
     if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE && clickRequested) {
         if(pauseRequested) {
             this->uiCallback.checkClick(xPos, (yPos - 600) * -1);
         } else { // USE ITEM
-            this->interact(curTime);
+            this->useRightHandItem(curTime);
         }
         clickRequested = false;
+    }
+
+    if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_RELEASE && rightClickRequested) {
+        if(pauseRequested) {
+        } else { // USE ITEM
+            this->useLeftHandItem(curTime);
+        }
+        rightClickRequested = false;
     }
 
     if(!controlsDisabled) {
@@ -249,7 +297,7 @@ void Player::processInput(GLFWwindow *window, float curTime, float deltaTime, bo
 
 bool Player::checkGrounded() {
     glm::vec3 outOrigin = getPlayerPos();
-    glm::vec3 outEnd = outOrigin + this->camera.WorldUp * (-2.25f - playerHeight);
+    glm::vec3 outEnd = outOrigin + this->camera.WorldUp * (-6.0f - playerHeight);
     btCollisionWorld::ClosestRayResultCallback RayCallback(btVector3(outOrigin.x, outOrigin.y, outOrigin.z), btVector3(outEnd.x, outEnd.y, outEnd.z));
     world->rayTest(btVector3(outOrigin.x, outOrigin.y, outOrigin.z), btVector3(outEnd.x, outEnd.y, outEnd.z), RayCallback);
     return RayCallback.hasHit();
@@ -261,7 +309,7 @@ void Player::interact(float curTime) {
     glm::vec3 outEnd = outOrigin + this->camera.Front * 100.0f;
     btCollisionWorld::ClosestRayResultCallback RayCallback(btVector3(outOrigin.x, outOrigin.y, outOrigin.z), btVector3(outEnd.x, outEnd.y, outEnd.z));
     world->rayTest(btVector3(outOrigin.x, outOrigin.y, outOrigin.z), btVector3(outEnd.x, outEnd.y, outEnd.z), RayCallback);
-    if(RayCallback.hasHit() && !itemInHand) {
+    if(RayCallback.hasHit()) {
         GameObject* hitObject = (GameObject*)RayCallback.m_collisionObject->getUserPointer(); // todo cast to generic gameobject
         if(hitObject != nullptr) {
             GameObjectInteractionType interactionType = hitObject->getInteraction();
@@ -277,40 +325,70 @@ void Player::interact(float curTime) {
                 //     this->uiCallback.showDialog(dialogLine);
                 //     controlsDisabled = true;
                 // }
-            } else if(interactionType == HOLD_ITEM) {
+            } else if(interactionType == HOLD_ITEM && rightHandItem == nullptr) {
                 hitObject->setPos([this]() { return getPlayerRightHandPos(); });
                 ((Item*)hitObject)->setForward([this]() { return getForward(); });
                 ((Item*)hitObject)->setParentTransform([this]() { return getPlayerRightHandTransform(); });
+                ((Item*)hitObject)->itemHeld=true;
                 this->itemHoldStart = curTime;
-                this->itemInHand = true;
+                this->itemInRightHand = true;
                 this->rightHandItem = (Item*)hitObject;
-            } else if(interactionType == THROW_ITEM) {
-                hitObject->applyForce(getPlayerRightHandPos()); // need to reactivate the rigid body of the interactive entity
+            } else if(interactionType == HOLD_ITEM && leftHandItem == nullptr) {
+                hitObject->setPos([this]() { return getPlayerLeftHandPos(); });
+                ((Item*)hitObject)->setForward([this]() { return getForward(); });
+                ((Item*)hitObject)->setParentTransform([this]() { return getPlayerLeftHandTransform(); });
+                ((Item*)hitObject)->itemHeld=true;
+                this->itemHoldStart = curTime;
+                this->itemInLeftHand = true;
+                this->leftHandItem = (Item*)hitObject;
             } else if(interactionType == TOGGLE) {
                 hitObject->toggleState();
-            } else if(interactionType == HIT) {
-                curAnim = this->animations["shoot"];
-                this->animator->playAnimation(curAnim);
-                playingAnimation = true;
-                animationStart = curTime;
-                std::cout <<"HIT\n";
-                hitObject->takeHit(10);
             }
         } else {
             std::cout <<"NADA\n";
         }
-    } else if(itemInHand) { // throw that shit
-        this->rightHandItem->toggleRigidBody();
-        glm::vec3 throwingForce = this->camera.Front * 5.0f + glm::vec3(0,5,0);
-        this->rightHandItem->applyForce(throwingForce);
-        // apply force
-        this->rightHandItem = nullptr;
-        itemInHand = false;
     }
 }
 
-void Player::useItem() {
-    
+void Player::useRightHandItem(float curTime) {
+    glm::vec3 outOrigin = getPlayerPos();
+    glm::vec3 outEnd = outOrigin + this->camera.Front * 100.0f;
+    btCollisionWorld::ClosestRayResultCallback RayCallback(btVector3(outOrigin.x, outOrigin.y, outOrigin.z), btVector3(outEnd.x, outEnd.y, outEnd.z));
+    world->rayTest(btVector3(outOrigin.x, outOrigin.y, outOrigin.z), btVector3(outEnd.x, outEnd.y, outEnd.z), RayCallback);
+    if(RayCallback.hasHit()) {
+        GameObject* hitObject = (GameObject*)RayCallback.m_collisionObject->getUserPointer(); // todo cast to generic gameobject
+        if(hitObject != nullptr) {
+            GameObjectInteractionType interactionType = hitObject->getInteraction();
+            if(interactionType == HIT && rightHandItem != nullptr) {
+                curAnim = this->animations["shoot"];
+                this->animator->playAnimation(curAnim);
+                playingAnimation = true;
+                animationStart = curTime;
+                hitObject->takeHit(10);
+            } else if(interactionType == HIT && rightHandItem == nullptr) {
+                curAnim = this->animations["shove"];
+                this->animator->playAnimation(curAnim);
+                playingAnimation = true;
+                animationStart = curTime;
+                hitObject->applyForce(this->getForward() * 4.0f + glm::vec3(0.0, 10.0, 0.0));
+            }
+        }
+    }
+}
+
+void Player::useLeftHandItem(float curTime) {
+    if(leftHandItem != nullptr) {
+        curAnim = this->animations["shoot"];
+        this->animator->playAnimation(curAnim);
+        playingAnimation = true;
+        animationStart = curTime;
+    } else if(leftHandItem == nullptr) {
+        curAnim = this->animations["shove"];
+        this->animator->playAnimation(curAnim);
+        playingAnimation = true;
+        animationStart = curTime;
+    }
+
 }
 
 void Player::setSelected(bool selected) {
@@ -318,11 +396,11 @@ void Player::setSelected(bool selected) {
 }
 
 void Player::pollInteractables() {
-    glm::vec3 outOrigin = getPlayerPos();
+    glm::vec3 outOrigin = getPlayerPos() + (this->getForward() * 3.0f); // collider of item in hand getting in the way?
     glm::vec3 outEnd = outOrigin + this->camera.Front * 100.0f;
     btCollisionWorld::ClosestRayResultCallback RayCallback(btVector3(outOrigin.x, outOrigin.y, outOrigin.z), btVector3(outEnd.x, outEnd.y, outEnd.z));
     world->rayTest(btVector3(outOrigin.x, outOrigin.y, outOrigin.z), btVector3(outEnd.x, outEnd.y, outEnd.z), RayCallback);
-    if(RayCallback.hasHit() && !itemInHand) {
+    if(RayCallback.hasHit()) {
         // set gameobject as selected
         GameObject* hitObject = (GameObject*)RayCallback.m_collisionObject->getUserPointer();
         if(hitObject != nullptr) {
@@ -350,8 +428,14 @@ glm::mat4 Player::getPlayerRightHandTransform() {
     glm::mat4 model = glm::translate(glm::mat4(1.0), getPlayerPos()); // ARM ADJUST
     //model = glm::scale(model, glm::vec3(.25, .25, .25));
     model *= glm::mat4(getPlayerRotationMatrix());
-    return model * glm::translate(glm::mat4(1.0), (glm::vec3)this->animator->getGlobalBoneTransform("Bone.003.L")[3]) * glm::translate(glm::mat4(1.0), glm::vec3(-0.35, 0.0, 1.25));
+    return model * glm::translate(glm::mat4(1.0), (glm::vec3)this->animator->getGlobalBoneTransform("Bone.003.R")[3]) * glm::translate(glm::mat4(1.0), glm::vec3(-0.75, 0.25, 1.25));
     //return model * glm::translate(glm::mat4(1.0), (glm::vec3)this->animator->getGlobalBoneTransform("Bone.003.L")[3]) * glm::mat4(getPlayerRotationMatrix()) * glm::translate(glm::mat4(1.0), glm::vec3(-0.25, 0.0, 1.25));
+}
+
+glm::mat4 Player::getPlayerLeftHandTransform() {
+    glm::mat4 model = glm::translate(glm::mat4(1.0), getPlayerPos()); // ARM ADJUST
+    model *= glm::mat4(getPlayerRotationMatrix());
+    return model * glm::translate(glm::mat4(1.0), (glm::vec3)this->animator->getGlobalBoneTransform("Bone.003.L")[3]) * glm::translate(glm::mat4(1.0), glm::vec3(.5, 0.25, 1.25));
 }
 
 glm::vec3 Player::getPlayerLeftHandPos() {
@@ -359,7 +443,7 @@ glm::vec3 Player::getPlayerLeftHandPos() {
 }
 
 glm::mat3 Player::getPlayerRotationMatrix() {
-    return glm::mat3(this->camera.Right, this->camera.Up, this->camera.Front);
+    return glm::mat3(this->camera.Right, this->camera.Up, -this->camera.Front);
 }
 
 bool Player::isAlive() {

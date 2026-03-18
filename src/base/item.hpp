@@ -10,7 +10,8 @@
 class Item : public GameObject {
     public:
         Item(std::string name, glm::vec3 position, std::shared_ptr<Model> itemModel,
-            std::shared_ptr<Shader> itemShader, float scale, std::shared_ptr<Shader> outlineShader);
+            std::shared_ptr<Shader> itemShader, float scale, std::shared_ptr<Shader> outlineShader,
+            glm::vec3 holdingScaleFactor = glm::vec3(1.0));
         void use();
         std::string name;
         void render(float deltaTime, glm::mat4 model = glm::mat4(1.0), glm::mat4 view = glm::mat4(1.0), glm::mat4 projection = glm::mat4(1.0), float curTime = 0.0, glm::vec3 sceneLightPos = glm::vec3(0.0));
@@ -33,6 +34,7 @@ class Item : public GameObject {
         glm::vec3 position;
         glm::vec3 rotation;
         bool selected;
+        bool itemHeld;
     private:
         float scale;
         std::shared_ptr<Model> itemModel;
@@ -42,10 +44,10 @@ class Item : public GameObject {
         bool initialized;
         RigidBodyEntity* itemRigidBody;
         bool twoHanded;
-        bool itemHeld;
         std::function<glm::vec3()> positionCallback;
         std::function<glm::vec3()> forwardCallback;
         std::function<glm::mat4()> parentTransformCallback;
+        glm::vec3 holdingScaleFactor;
 };
 
 #endif

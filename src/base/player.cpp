@@ -203,7 +203,7 @@ void Player::processInput(GLFWwindow *window, float curTime, float deltaTime, bo
             this->uiCallback.checkClick(xPos, (yPos - 600) * -1);
         } else { // USE ITEM
             if(rightHandItem == nullptr && leftHandItem == nullptr) {
-
+                this->shove(curTime);
             } else {
                 this->useRightHandItem(curTime);
             }
@@ -216,6 +216,7 @@ void Player::processInput(GLFWwindow *window, float curTime, float deltaTime, bo
         } else { // USE ITEM
             
             if(rightHandItem == nullptr && leftHandItem == nullptr) {
+                this->shove(curTime);
             } else {
                 this->useLeftHandItem(curTime);
             }

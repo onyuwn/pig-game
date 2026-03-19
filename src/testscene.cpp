@@ -95,7 +95,7 @@ void TestScene::initialize(std::function<void(float, std::string)> progressCallb
     }
     this->addGameObject(piggyGameObject);
     this->addGameObject(gunItemGameObject);
-    //this->addGameObject(hourglassGameObject);
+    this->addGameObject(hourglassGameObject);
     this->terrain = std::make_shared<Terrain>(*this->sceneTerrainModel);
     this->terrain->initTerrain();
     this->terrain->addToWorld(world);

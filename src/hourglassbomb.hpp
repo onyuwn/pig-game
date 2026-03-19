@@ -16,7 +16,6 @@ class HourGlassBomb : public Item {
             float curTime = 0.0, glm::vec3 sceneLightPos = glm::vec3(0.0)) override;
         void initializeAOE();
     private:
-        RigidBodyEntity* itemRigidBody;
         btSphereShape* bombAreaOfEffectShape;
         btCollisionObject* areaOfEffect;
         float explosionDamage;

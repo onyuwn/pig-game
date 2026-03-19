@@ -14,7 +14,6 @@ class BasicPistol : public Item {
         // void initialize() override;
         // void addToWorld(btDiscreteDynamicsWorld *world) override;
     private:
-        RigidBodyEntity* itemRigidBody;
         float shootingSpeed;
         float damage;
         float range;

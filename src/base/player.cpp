@@ -140,28 +140,30 @@ void Player::processInput(GLFWwindow *window, float curTime, float deltaTime, bo
     }
 
     if(glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS && (itemInLeftHand || itemInRightHand)) { // throw that shit
-        if(itemInRightHand && rightHandItem != nullptr) {
-            this->rightHandItem->toggleRigidBody();
-            glm::vec3 throwingForce = this->camera.Front * 5.0f + glm::vec3(0,5,0);
-            this->rightHandItem->applyForce(throwingForce);
-            // apply force
-            this->rightHandItem = nullptr;
-            this->itemInRightHand = false;
-            curAnim = this->animations["throwR"];
-            this->animator->playAnimation(curAnim);
-            animationStart = curTime;
-            playingAnimation = true;
-        } else if(itemInLeftHand && leftHandItem != nullptr) {
-            this->leftHandItem->toggleRigidBody();
+         if(itemInLeftHand && leftHandItem != nullptr) {
             glm::vec3 throwingForce = this->camera.Front * 5.0f + glm::vec3(0,5,0);
             this->leftHandItem->applyForce(throwingForce);
             // apply force
+            this->leftHandItem->itemJustHeld = true;
+            this->leftHandItem->itemHeld = false;
             this->leftHandItem = nullptr;
             this->itemInRightHand = false;
             curAnim = this->animations["throwL"];
             this->animator->playAnimation(curAnim);
             animationStart = curTime;
             playingAnimation = true;  
+        } else if(itemInRightHand && rightHandItem != nullptr) {
+            glm::vec3 throwingForce = this->camera.Front * 5.0f + glm::vec3(0,5,0);
+            this->rightHandItem->applyForce(throwingForce);
+            // apply force
+            this->rightHandItem->itemJustHeld = true;
+            this->rightHandItem->itemHeld = false;
+            this->rightHandItem = nullptr;
+            this->itemInRightHand = false;
+            curAnim = this->animations["throwR"];
+            this->animator->playAnimation(curAnim);
+            animationStart = curTime;
+            playingAnimation = true;
         }
     }
 
@@ -200,7 +202,11 @@ void Player::processInput(GLFWwindow *window, float curTime, float deltaTime, bo
         if(pauseRequested) {
             this->uiCallback.checkClick(xPos, (yPos - 600) * -1);
         } else { // USE ITEM
-            this->useRightHandItem(curTime);
+            if(rightHandItem == nullptr && leftHandItem == nullptr) {
+
+            } else {
+                this->useRightHandItem(curTime);
+            }
         }
         clickRequested = false;
     }
@@ -208,7 +214,11 @@ void Player::processInput(GLFWwindow *window, float curTime, float deltaTime, bo
     if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_RELEASE && rightClickRequested) {
         if(pauseRequested) {
         } else { // USE ITEM
-            this->useLeftHandItem(curTime);
+            
+            if(rightHandItem == nullptr && leftHandItem == nullptr) {
+            } else {
+                this->useLeftHandItem(curTime);
+            }
         }
         rightClickRequested = false;
     }
@@ -330,6 +340,7 @@ void Player::interact(float curTime) {
                 ((Item*)hitObject)->setForward([this]() { return getForward(); });
                 ((Item*)hitObject)->setParentTransform([this]() { return getPlayerRightHandTransform(); });
                 ((Item*)hitObject)->itemHeld=true;
+                ((Item*)hitObject)->itemJustHeld=true;
                 this->itemHoldStart = curTime;
                 this->itemInRightHand = true;
                 this->rightHandItem = (Item*)hitObject;
@@ -338,11 +349,10 @@ void Player::interact(float curTime) {
                 ((Item*)hitObject)->setForward([this]() { return getForward(); });
                 ((Item*)hitObject)->setParentTransform([this]() { return getPlayerLeftHandTransform(); });
                 ((Item*)hitObject)->itemHeld=true;
+                ((Item*)hitObject)->itemJustHeld=true;
                 this->itemHoldStart = curTime;
                 this->itemInLeftHand = true;
                 this->leftHandItem = (Item*)hitObject;
-            } else if(interactionType == TOGGLE) {
-                hitObject->toggleState();
             }
         } else {
             std::cout <<"NADA\n";
@@ -351,44 +361,66 @@ void Player::interact(float curTime) {
 }
 
 void Player::useRightHandItem(float curTime) {
-    glm::vec3 outOrigin = getPlayerPos();
-    glm::vec3 outEnd = outOrigin + this->camera.Front * 100.0f;
-    btCollisionWorld::ClosestRayResultCallback RayCallback(btVector3(outOrigin.x, outOrigin.y, outOrigin.z), btVector3(outEnd.x, outEnd.y, outEnd.z));
-    world->rayTest(btVector3(outOrigin.x, outOrigin.y, outOrigin.z), btVector3(outEnd.x, outEnd.y, outEnd.z), RayCallback);
-    if(RayCallback.hasHit()) {
-        GameObject* hitObject = (GameObject*)RayCallback.m_collisionObject->getUserPointer(); // todo cast to generic gameobject
-        if(hitObject != nullptr) {
-            GameObjectInteractionType interactionType = hitObject->getInteraction();
-            if(interactionType == HIT && rightHandItem != nullptr) {
-                curAnim = this->animations["shoot"];
-                this->animator->playAnimation(curAnim);
-                playingAnimation = true;
-                animationStart = curTime;
-                hitObject->takeHit(10);
-            } else if(interactionType == HIT && rightHandItem == nullptr) {
-                curAnim = this->animations["shove"];
-                this->animator->playAnimation(curAnim);
-                playingAnimation = true;
-                animationStart = curTime;
-                hitObject->applyForce(this->getForward() * 4.0f + glm::vec3(0.0, 10.0, 0.0));
+    if(rightHandItem != nullptr) {
+        if(rightHandItem->getItemUseType() == ItemUseType::SHOOT) {
+            curAnim = this->animations["shoot"];
+            this->animator->playAnimation(curAnim);
+            playingAnimation = true;
+            animationStart = curTime;
+            BasicPistol* isPistol = dynamic_cast<BasicPistol*>(rightHandItem);
+            if(isPistol != nullptr) {
+                ((BasicPistol*)rightHandItem)->use();
             }
+        } else if(rightHandItem->getItemUseType() == ItemUseType::THROW) {
+            glm::vec3 throwingForce = this->camera.Front * 5.0f + glm::vec3(0,5,0);
+            this->rightHandItem->applyForce(throwingForce);
+            // apply force
+            this->rightHandItem->itemJustHeld = true;
+            this->rightHandItem->itemHeld = false;
+            this->rightHandItem = nullptr;
+            this->itemInRightHand = false;
+            curAnim = this->animations["throwR"];
+            this->animator->playAnimation(curAnim);
+            animationStart = curTime;
+            playingAnimation = true;
         }
     }
 }
 
 void Player::useLeftHandItem(float curTime) {
     if(leftHandItem != nullptr) {
-        curAnim = this->animations["shoot"];
-        this->animator->playAnimation(curAnim);
-        playingAnimation = true;
-        animationStart = curTime;
-    } else if(leftHandItem == nullptr) {
-        curAnim = this->animations["shove"];
-        this->animator->playAnimation(curAnim);
-        playingAnimation = true;
-        animationStart = curTime;
+        if(rightHandItem->getItemUseType() == ItemUseType::SHOOT) {
+            curAnim = this->animations["shoot"];
+            this->animator->playAnimation(curAnim);
+            playingAnimation = true;
+            animationStart = curTime;
+        } else if(rightHandItem->getItemUseType() == ItemUseType::THROW) {
+            curAnim = this->animations["throwL"];
+            this->animator->playAnimation(curAnim);
+            playingAnimation = true;
+            animationStart = curTime;
+        }
+        leftHandItem->use();
     }
+}
 
+void Player::shove(float curTime) {
+    curAnim = this->animations["shove"];
+    this->animator->playAnimation(curAnim);
+    playingAnimation = true;
+    animationStart = curTime;
+    glm::vec3 outOrigin = getPlayerPos();
+    glm::vec3 outEnd = outOrigin + this->camera.Front * 5.0f;
+    btCollisionWorld::ClosestRayResultCallback RayCallback(btVector3(outOrigin.x, outOrigin.y, outOrigin.z), btVector3(outEnd.x, outEnd.y, outEnd.z));
+    world->rayTest(btVector3(outOrigin.x, outOrigin.y, outOrigin.z), btVector3(outEnd.x, outEnd.y, outEnd.z), RayCallback);
+    if(RayCallback.hasHit()) {
+        GameObject* hitObject = (GameObject*)RayCallback.m_collisionObject->getUserPointer();
+        if(hitObject != nullptr) {
+            hitObject->applyForce(this->getForward() * 4.0f + glm::vec3(0.0, 10.0, 0.0));
+        }
+    } else {
+        this->helpText->setText("");
+    }
 }
 
 void Player::setSelected(bool selected) {
@@ -396,7 +428,7 @@ void Player::setSelected(bool selected) {
 }
 
 void Player::pollInteractables() {
-    glm::vec3 outOrigin = getPlayerPos() + (this->getForward() * 3.0f); // collider of item in hand getting in the way?
+    glm::vec3 outOrigin = getPlayerPos() + (this->getForward() * 3.0f); // collider of item in hand getting in the way -- removing held items from simulation
     glm::vec3 outEnd = outOrigin + this->camera.Front * 100.0f;
     btCollisionWorld::ClosestRayResultCallback RayCallback(btVector3(outOrigin.x, outOrigin.y, outOrigin.z), btVector3(outEnd.x, outEnd.y, outEnd.z));
     world->rayTest(btVector3(outOrigin.x, outOrigin.y, outOrigin.z), btVector3(outEnd.x, outEnd.y, outEnd.z), RayCallback);

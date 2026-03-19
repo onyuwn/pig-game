@@ -77,12 +77,13 @@ void TestScene::initialize(std::function<void(float, std::string)> progressCallb
         std::make_shared<Piggy>("piggy", glm::vec3(0, 8, -20), 2.0, this->piggyModel, this->shatteredPigModel1, this->pigShader, 0, this->outlineShader
     );
     std::shared_ptr<GameObject> gunItemGameObject =
-        std::make_shared<Item>("GUN1", glm::vec3(10, 10, 10), gun1Model, pigShader, 2.0, outlineShader, glm::vec3(.125));
+        std::make_shared<BasicPistol>("GUN1", glm::vec3(10, 10, 10), gun1Model, pigShader, 2.0, outlineShader, glm::vec3(.125));
     std::shared_ptr<GameObject> hourglassGameObject =
-        std::make_shared<Item>("HOURGLASS", glm::vec3(10, 10, -10), hourGlassModel, pigShader, 2.0, outlineShader, glm::vec3(.05));
-    hourglassGameObject->initialize();
+        std::make_shared<HourGlassBomb>("HOURGLASS", glm::vec3(10, 10, -10), hourGlassModel, pigShader, 2.0, outlineShader, glm::vec3(.05));
+    //hourglassGameObject->initialize();
     piggyGameObject->initialize();
-    gunItemGameObject->initialize();
+    (dynamic_cast<HourGlassBomb*>(hourglassGameObject.get()))->initialize();
+    (dynamic_cast<BasicPistol*>(gunItemGameObject.get()))->initialize();
     if (auto piggyPtr = std::dynamic_pointer_cast<Piggy>(piggyGameObject)) {
         piggyPtr->addToWorld(this->world);
     }
@@ -94,7 +95,7 @@ void TestScene::initialize(std::function<void(float, std::string)> progressCallb
     }
     this->addGameObject(piggyGameObject);
     this->addGameObject(gunItemGameObject);
-    this->addGameObject(hourglassGameObject);
+    //this->addGameObject(hourglassGameObject);
     this->terrain = std::make_shared<Terrain>(*this->sceneTerrainModel);
     this->terrain->initTerrain();
     this->terrain->addToWorld(world);

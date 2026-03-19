@@ -281,14 +281,6 @@ void Piggy::applyForce(glm::vec3 force) {
     this->stunned = true;
 }
 
-void Piggy::toggleRigidBody() {
-    // not needed
-}
-
-void Piggy::toggleState() {
-    
-}
-
 std::string Piggy::getHelpText() {
     return this->name;
 }

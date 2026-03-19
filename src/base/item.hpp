@@ -3,6 +3,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include "gameobject.hpp"
 #include "gameobjectinteractiontype.hpp"
+#include "itemusetype.hpp"
 #include "rigidbodyentity.hpp"
 #include "model.hpp"
 #include "shader.hpp"
@@ -12,21 +13,23 @@ class Item : public GameObject {
         Item(std::string name, glm::vec3 position, std::shared_ptr<Model> itemModel,
             std::shared_ptr<Shader> itemShader, float scale, std::shared_ptr<Shader> outlineShader,
             glm::vec3 holdingScaleFactor = glm::vec3(1.0));
-        void use();
+        virtual void use() = 0;
+        virtual ItemUseType getItemUseType() = 0;
         std::string name;
-        void render(float deltaTime, glm::mat4 model = glm::mat4(1.0), glm::mat4 view = glm::mat4(1.0), glm::mat4 projection = glm::mat4(1.0), float curTime = 0.0, glm::vec3 sceneLightPos = glm::vec3(0.0));
-        void initialize();
+        virtual void render(float deltaTime, glm::mat4 model = glm::mat4(1.0),
+                    glm::mat4 view = glm::mat4(1.0), glm::mat4 projection = glm::mat4(1.0),
+                    float curTime = 0.0, glm::vec3 sceneLightPos = glm::vec3(0.0));
+        virtual void initialize();
         void setPosition(glm::vec3 newPos);
         void setSelected(bool selected);
         void setPos(std::function<glm::vec3()> posCallback);
         glm::vec3 getPos();
         void applyForce(glm::vec3 force);
-        void toggleRigidBody();
-        void toggleState();
         GameObjectInteractionType getInteraction();
         void takeHit(int dmg);
         void setScale(float scale);
-        void addToWorld(btDiscreteDynamicsWorld *world);
+        virtual void addToWorld(btDiscreteDynamicsWorld *world);
+        void removeFromWorld();
         glm::vec3 getForward();
         void setForward(std::function<glm::vec3()> forwardCallback);
         void setParentTransform(std::function<glm::mat4()> parentTransformCallback);
@@ -35,12 +38,12 @@ class Item : public GameObject {
         glm::vec3 rotation;
         bool selected;
         bool itemHeld;
-    private:
+        bool itemJustHeld;
         float scale;
         std::shared_ptr<Model> itemModel;
         std::shared_ptr<Shader> itemShader;
         std::shared_ptr<Shader> outlineShader;
-        btDynamicsWorld* physWorld;
+        btDiscreteDynamicsWorld* physWorld;
         bool initialized;
         RigidBodyEntity* itemRigidBody;
         bool twoHanded;

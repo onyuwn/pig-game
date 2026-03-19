@@ -8,6 +8,8 @@
 #include "base/uimaster.hpp"
 #include "base/item.hpp"
 #include "piggy.hpp"
+#include "basicpistol.hpp"
+#include "hourglassbomb.hpp"
 
 class TestScene : public Scene {
     public:

@@ -18,6 +18,7 @@
 #include "animation.hpp"
 #include "animator.hpp"
 #include "item.hpp"
+#include "../basicpistol.hpp"
 
 class Player : GameObject {
     public:
@@ -64,6 +65,7 @@ class Player : GameObject {
         glm::vec3 Player::getPlayerLeftHandPos();
         void setSelected(bool selected);
     private:
+        void shove(float curTime);
         Camera &camera;
         btDiscreteDynamicsWorld* world;
         std::map<std::string, Animation*> animations;

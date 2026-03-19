@@ -41,8 +41,6 @@ class Piggy : public GameObject {
         void initialize() override;
         void addToWorld(btDiscreteDynamicsWorld * world);
         void applyForce(glm::vec3 force) override;
-        void toggleRigidBody() override;
-        void toggleState() override;
         int getHealth();
         void takeHit(int dmg);
         void setSelected(bool selected);

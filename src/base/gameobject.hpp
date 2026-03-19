@@ -15,8 +15,6 @@ class GameObject {
         virtual void setPos(std::function<glm::vec3()> posCallback) = 0;
         virtual void applyForce(glm::vec3 force) = 0;
         virtual void takeHit(int dmg) = 0;
-        virtual void toggleRigidBody() = 0;
-        virtual void toggleState() = 0; // door
         virtual void setSelected(bool selected) = 0;
         virtual std::string getHelpText() = 0;
         bool selected;

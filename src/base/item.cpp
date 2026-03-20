@@ -73,8 +73,9 @@ void Item::render(float deltaTime, glm::mat4 model,
             this->physWorld->removeRigidBody(this->itemRigidBody->entityRigidBody);
             this->itemJustHeld = false;
         }
-        itemModelMatrix = glm::scale(itemModelMatrix, glm::vec3(this->scale * this->holdingScaleFactor));
         //itemModelMatrix = glm::translate(itemModelMatrix, this->position);
+        itemModelMatrix = glm::scale(itemModelMatrix, glm::vec3(this->scale * this->holdingScaleFactor));
+        itemModelMatrix = itemRigidBody->render(itemModelMatrix, true);
     } else {
         itemModelMatrix = itemRigidBody->render(itemModelMatrix, false);
         itemModelMatrix = glm::scale(itemModelMatrix, glm::vec3(this->scale));

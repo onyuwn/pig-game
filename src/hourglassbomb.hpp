@@ -3,6 +3,8 @@
 #define GLM_ENABLE_EXPIREMENTAL
 
 #include "base/item.hpp"
+#include "piggy.hpp"
+#include <BulletCollision/CollisionDispatch/btGhostObject.h>
 
 class HourGlassBomb : public Item {
     public:
@@ -15,14 +17,18 @@ class HourGlassBomb : public Item {
             glm::mat4 view = glm::mat4(1.0), glm::mat4 projection = glm::mat4(1.0),
             float curTime = 0.0, glm::vec3 sceneLightPos = glm::vec3(0.0)) override;
         void initializeAOE();
+        void updateAOEPos();
     private:
         btSphereShape* bombAreaOfEffectShape;
-        btCollisionObject* areaOfEffect;
+        btGhostObject* areaOfEffect;
+        btGhostPairCallback* areaOfEffectCallback;
         float explosionDamage;
         float timeToExplosion;
         float explosionStart;
         float range;
         bool bombActive;
+        bool bombExploded;
+        float detonationTime;
 };
 
 #endif

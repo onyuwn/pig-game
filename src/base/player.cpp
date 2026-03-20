@@ -1,4 +1,6 @@
 #include "player.hpp"
+#include "../basicpistol.hpp"
+#include "../hourglassbomb.hpp"
 
 Player::Player(Camera &camera, btDiscreteDynamicsWorld *world,
                UIMaster &uiCallback, bool &physDebugOn, std::string playerModelPath)
@@ -147,7 +149,7 @@ void Player::processInput(GLFWwindow *window, float curTime, float deltaTime, bo
             this->leftHandItem->itemJustHeld = true;
             this->leftHandItem->itemHeld = false;
             this->leftHandItem = nullptr;
-            this->itemInRightHand = false;
+            this->itemInLeftHand = false;
             curAnim = this->animations["throwL"];
             this->animator->playAnimation(curAnim);
             animationStart = curTime;
@@ -378,30 +380,45 @@ void Player::useRightHandItem(float curTime) {
             // apply force
             this->rightHandItem->itemJustHeld = true;
             this->rightHandItem->itemHeld = false;
-            this->rightHandItem = nullptr;
             this->itemInRightHand = false;
             curAnim = this->animations["throwR"];
             this->animator->playAnimation(curAnim);
             animationStart = curTime;
             playingAnimation = true;
+            HourGlassBomb* isBomb = dynamic_cast<HourGlassBomb*>(rightHandItem);
+            if(isBomb != nullptr) {
+                ((HourGlassBomb*)rightHandItem)->use();
+            }
+            this->rightHandItem = nullptr;
         }
     }
 }
 
 void Player::useLeftHandItem(float curTime) {
     if(leftHandItem != nullptr) {
-        if(rightHandItem->getItemUseType() == ItemUseType::SHOOT) {
+        if(leftHandItem->getItemUseType() == ItemUseType::SHOOT) {
             curAnim = this->animations["shoot"];
             this->animator->playAnimation(curAnim);
             playingAnimation = true;
             animationStart = curTime;
-        } else if(rightHandItem->getItemUseType() == ItemUseType::THROW) {
-            curAnim = this->animations["throwL"];
+            leftHandItem->use();
+        } else if(leftHandItem->getItemUseType() == ItemUseType::THROW) {
+            glm::vec3 throwingForce = this->camera.Front * 5.0f + glm::vec3(0,5,0);
+            this->leftHandItem->applyForce(throwingForce);
+            // apply force
+            this->leftHandItem->itemJustHeld = true;
+            this->leftHandItem->itemHeld = false;
+            this->itemInLeftHand = false;
+            curAnim = this->animations["throwR"];
             this->animator->playAnimation(curAnim);
-            playingAnimation = true;
             animationStart = curTime;
+            playingAnimation = true;
+            HourGlassBomb* isBomb = dynamic_cast<HourGlassBomb*>(leftHandItem);
+            if(isBomb != nullptr) {
+                ((HourGlassBomb*)leftHandItem)->use();
+            }
+            this->leftHandItem = nullptr;
         }
-        leftHandItem->use();
     }
 }
 

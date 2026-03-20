@@ -1,15 +1,12 @@
 #ifndef PIGGY_HPP
 #define PIGGY_HPP
 #define GLM_ENABLE_EXPERIMENTAL
-#include <string>
 #include <vector>
 #include "base/model.hpp"
 #include "base/shader.hpp"
 #include "base/rigidbodyentity.hpp"
 #include "base/dialogue.hpp"
 #include "base/collisionshapetype.hpp"
-#include "base/gameobject.hpp"
-#include "base/gameobjectinteractiontype.hpp"
 #include "base/player.hpp"
 #include "base/animation.hpp"
 #include "base/animator.hpp"

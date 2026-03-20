@@ -1,5 +1,5 @@
-#ifndef BASICPISTOR_HPP
-#define BASICPISTOR_HPP
+#ifndef BASICPISTOL_HPP
+#define BASICPISTOL_HPP
 #define GLM_ENABLE_EXPIREMENTAL
 
 #include "base/item.hpp"

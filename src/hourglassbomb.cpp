@@ -5,22 +5,35 @@ HourGlassBomb::HourGlassBomb(std::string name, glm::vec3 position, std::shared_p
                          glm::vec3 holdingScaleFactor)
                          : Item(name, position, itemModel, itemShader, scale, outlineShader, holdingScaleFactor) {
     this->selected = false;
-    this->range = 100;
-    this->explosionDamage = 10;
+    this->range = 50;
+    this->explosionDamage = 50; // scale based on distance to origin?
     this->bombActive = false;
     this->timeToExplosion = 5;
+    this->detonationTime = 0.0;
+    this->bombExploded = false;
 }
 
 void HourGlassBomb::initializeAOE() {
-    this->bombAreaOfEffectShape = new btSphereShape(3.0);
-    this->areaOfEffect = new btCollisionObject();
+    this->bombAreaOfEffectShape = new btSphereShape(this->range);
+    this->areaOfEffect = new btGhostObject();
+    this->areaOfEffectCallback = new btGhostPairCallback();
+    this->physWorld->getBroadphase()->getOverlappingPairCache()->setInternalGhostPairCallback(this->areaOfEffectCallback);
     this->areaOfEffect->setCollisionShape(this->bombAreaOfEffectShape);
+    this->areaOfEffect->setCollisionFlags( this->areaOfEffect->getCollisionFlags() | btCollisionObject::CF_NO_CONTACT_RESPONSE);
 }
 
 void HourGlassBomb::use() {
     // throw as if dropped but activate bomb timer then remove from world
     // i think player will handle throw but count down here?
     this->bombActive = true;
+    this->itemHeld = false;
+    this->updateAOEPos();
+    this->physWorld->addCollisionObject(
+        this->areaOfEffect,
+        btBroadphaseProxy::SensorTrigger,
+        btBroadphaseProxy::AllFilter & ~btBroadphaseProxy::SensorTrigger
+    );
+    this->addToWorld(this->physWorld); // TODO maybe implement "collision layers" (use different phys worlds)
 }
 
 void HourGlassBomb::render(float deltaTime, glm::mat4 model,
@@ -38,7 +51,9 @@ void HourGlassBomb::render(float deltaTime, glm::mat4 model,
     }
 
     if(this->itemJustHeld == true && this->itemHeld == false) {
-        this->addToWorld(this->physWorld); // TODO maybe implement "collision layers" (use different phys worlds)
+        if(!this->bombActive) {
+            this->addToWorld(this->physWorld); // TODO maybe implement "collision layers" (use different phys worlds)
+        }
         this->itemJustHeld = false;
     }
 
@@ -49,18 +64,6 @@ void HourGlassBomb::render(float deltaTime, glm::mat4 model,
     this->itemShader->setMat4("view", view);
     this->itemShader->setVec3("lightPos", sceneLightPos);
     this->itemShader->setFloat("hitTime", 0.0);
-
-    if(this->bombActive) {
-        glm::vec3 currentBombPos = this->getPos();
-        btTransform currentTransform = this->areaOfEffect->getWorldTransform();
-        currentTransform.setOrigin(btVector3(currentBombPos.x, currentBombPos.y, currentBombPos.z));
-        this->areaOfEffect->setWorldTransform(currentTransform);
-        float countDown = curTime - explosionStart;
-        this->itemShader->setFloat("hitTime", countDown);
-        if(countDown >= this->timeToExplosion) {
-            //boom
-        }
-    }
 
     glm::mat4 itemModelMatrix = glm::mat4(1.0);
     if(this->itemHeld) {
@@ -76,16 +79,59 @@ void HourGlassBomb::render(float deltaTime, glm::mat4 model,
         // );
         if(this->itemJustHeld == true) {
             this->physWorld->removeRigidBody(this->itemRigidBody->entityRigidBody);
+            this->physWorld->removeCollisionObject(this->areaOfEffect);
             this->itemJustHeld = false;
         }
-        itemModelMatrix = glm::scale(itemModelMatrix, glm::vec3(this->scale * this->holdingScaleFactor));
         //itemModelMatrix = glm::translate(itemModelMatrix, this->position);
+        itemModelMatrix = glm::scale(itemModelMatrix, glm::vec3(this->scale * this->holdingScaleFactor));
+        itemModelMatrix = itemRigidBody->render(itemModelMatrix, true);
     } else {
         itemModelMatrix = itemRigidBody->render(itemModelMatrix, false);
-        itemModelMatrix = glm::scale(itemModelMatrix, glm::vec3(this->scale));
+        if(bombActive) {
+            itemModelMatrix = glm::scale(itemModelMatrix, glm::vec3(this->scale * ((curTime - this->explosionStart) * .25) + 1.0f)); 
+        } else {
+            itemModelMatrix = glm::scale(itemModelMatrix, glm::vec3(this->scale));
+        }
+        this->position = itemModelMatrix[3];
     }
-    this->itemShader->setMat4("model", itemModelMatrix);
     this->itemShader->setFloat("opacity", 1.0);
+
+    if(this->bombActive) {
+        if(this->explosionStart <= 0.0f) {
+            this->explosionStart = curTime;
+        }
+        glm::vec3 currentBombPos = this->getPos();
+        btTransform currentTransform = this->areaOfEffect->getWorldTransform();
+        currentTransform.setOrigin(btVector3(currentBombPos.x, currentBombPos.y, currentBombPos.z));
+        this->areaOfEffect->setWorldTransform(currentTransform);
+        float countDown = curTime - explosionStart;
+        this->itemShader->setFloat("hitTime", countDown);
+        if(countDown >= this->timeToExplosion) {
+            int totalOverlappingPairs = this->areaOfEffect->getOverlappingPairs().size();
+            for(int i = 0; i < totalOverlappingPairs; i++) {
+                GameObject* objectInBombRadius = (GameObject*)this->areaOfEffect->getOverlappingPairs()[i]->getUserPointer();
+                Piggy* isPiggy = dynamic_cast<Piggy*>(objectInBombRadius);
+                if(isPiggy != nullptr) {
+                    isPiggy->takeHit(this->explosionDamage);
+                    isPiggy->applyForce(glm::vec3(0.0, 100.0, 0.0));
+                }
+            }
+            bombExploded = true;
+            bombActive = false;
+            this->detonationTime = curTime;
+            // destroy
+            this->explosionStart = 0.0f;
+        }
+    } else if(bombExploded && curTime - detonationTime < 2.0) {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        this->itemRigidBody->entityRigidBody->setCollisionFlags(this->itemRigidBody->entityRigidBody->getCollisionFlags() | btCollisionObject::CF_NO_CONTACT_RESPONSE);
+        this->itemShader->setFloat("opacity", 1.25 - ((curTime - detonationTime) / 2.0));
+    } else if(bombExploded && curTime - detonationTime > 2.0) {
+        this->shouldBeDestroyed = true;
+    }
+
+    this->itemShader->setMat4("model", itemModelMatrix);
     this->itemModel->draw(*this->itemShader, curTime);
 
     if(this->selected) {
@@ -104,9 +150,17 @@ void HourGlassBomb::render(float deltaTime, glm::mat4 model,
         glEnable(GL_DEPTH_TEST);
         glDisable(GL_CULL_FACE);
     }
+    this->updateAOEPos();
     this->selected = false;
 }
 
 ItemUseType HourGlassBomb::getItemUseType() {
     return ItemUseType::THROW;
+}
+
+void HourGlassBomb::updateAOEPos() {
+    glm::vec3 curPos = this->getPos();
+    btTransform currentTransform = this->areaOfEffect->getWorldTransform();
+    currentTransform.setOrigin(btVector3(curPos.x, curPos.y, curPos.z));
+    this->areaOfEffect->setWorldTransform(currentTransform);
 }

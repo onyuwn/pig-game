@@ -2,7 +2,7 @@
 
 TestScene::TestScene(std::string name, Camera &camera, UIMaster &ui) : initialized(false), camera(camera), ui(ui), physDebugOn(false), paused(false) {
         this->lastPigSpawnTime = 0.0f;
-        this->pigSpawnFrequency = 3.0f;
+        this->pigSpawnFrequency = 1.0f;
 }
 
 void TestScene::render(float deltaTime, float curTime, GLFWwindow *window, glm::vec2 windowDims) {
@@ -93,6 +93,7 @@ void TestScene::initialize(std::function<void(float, std::string)> progressCallb
     if (auto hourglassPtr = std::dynamic_pointer_cast<Item>(hourglassGameObject)) {
         hourglassPtr->addToWorld(this->world);
     }
+    (dynamic_cast<HourGlassBomb*>(hourglassGameObject.get()))->initializeAOE();
     this->addGameObject(piggyGameObject);
     this->addGameObject(gunItemGameObject);
     this->addGameObject(hourglassGameObject);
@@ -114,7 +115,7 @@ void TestScene::addGameObject(std::shared_ptr<GameObject> gameObject) {
 
 void TestScene::spawnNewPig(int pigIdx) {
     int xRand = (rand() % 100) - 50;
-    int yRand = (rand() % 25);
+    int yRand = (rand() % 25) + 5;
     int zRand = (rand() % 100) - 50;
     std::shared_ptr<GameObject> piggyGameObject = 
         std::make_shared<Piggy>(

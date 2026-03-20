@@ -18,7 +18,6 @@
 #include "animation.hpp"
 #include "animator.hpp"
 #include "item.hpp"
-#include "../basicpistol.hpp"
 
 class Player : GameObject {
     public:

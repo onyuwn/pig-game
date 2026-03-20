@@ -2,7 +2,7 @@
 
 TestScene::TestScene(std::string name, Camera &camera, UIMaster &ui) : initialized(false), camera(camera), ui(ui), physDebugOn(false), paused(false) {
         this->lastPigSpawnTime = 0.0f;
-        this->pigSpawnFrequency = 1.0f;
+        this->pigSpawnFrequency = 2.0f;
 }
 
 void TestScene::render(float deltaTime, float curTime, GLFWwindow *window, glm::vec2 windowDims) {
@@ -14,7 +14,7 @@ void TestScene::render(float deltaTime, float curTime, GLFWwindow *window, glm::
         this->world->stepSimulation(deltaTime * 5.0f, 7);
         this->player->UpdatePlayer(curTime, deltaTime, window, this->paused);
         // this->ui.updateWindowSize(windowDims.x, windowDims.y);
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom * 2.0f), (float)windowDims.x / (float)windowDims.y, 0.1f, 100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom * 2.0f), (float)windowDims.x / (float)windowDims.y, 0.1f, 500.0f);
         glm::mat4 view = camera.GetViewMatrix(player->getPlayerPos() + glm::vec3(0,1,0));
 
         this->sceneShader->use();

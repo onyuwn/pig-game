@@ -59,6 +59,7 @@ void TestScene::initialize(std::function<void(float, std::string)> progressCallb
     this->gun1Model = std::make_shared<Model>((char*)"resources/items/testgun1.gltf");
     this->hourGlassModel = std::make_shared<Model>((char*)"resources/items/hourglass.gltf");
     this->shatteredPigModel1 = std::make_shared<Model>((char*)"resources/pig/shatters/shatteredpig5.gltf");
+    this->stinkChestModel = std::make_shared<Model>((char*)"resources/stink/stinktat.gltf");
     this->pigShader = std::make_shared<Shader>("src/shaders/basic.vs", "src/shaders/basic.fs");
     this->outlineShader = std::make_shared<Shader>("src/shaders/outline.vs", "src/shaders/outline.fs");
     progressCallback(.25f, "initializing physics...");
@@ -80,10 +81,13 @@ void TestScene::initialize(std::function<void(float, std::string)> progressCallb
         std::make_shared<BasicPistol>("GUN1", glm::vec3(10, 10, 10), gun1Model, pigShader, 2.0, outlineShader, glm::vec3(.125));
     std::shared_ptr<GameObject> hourglassGameObject =
         std::make_shared<HourGlassBomb>("HOURGLASS", glm::vec3(10, 10, -10), hourGlassModel, pigShader, 2.0, outlineShader, glm::vec3(.05));
+    std::shared_ptr<GameObject> stinkItem =
+        std::make_shared<StinkItem>("stinkcur", glm::vec3(-10, 10, -10), stinkChestModel, pigShader, 2.0, outlineShader, glm::vec3(.05));
     //hourglassGameObject->initialize();
     piggyGameObject->initialize();
     (dynamic_cast<HourGlassBomb*>(hourglassGameObject.get()))->initialize();
     (dynamic_cast<BasicPistol*>(gunItemGameObject.get()))->initialize();
+    (dynamic_cast<StinkItem*>(stinkItem.get()))->initialize();
     if (auto piggyPtr = std::dynamic_pointer_cast<Piggy>(piggyGameObject)) {
         piggyPtr->addToWorld(this->world);
     }
@@ -93,10 +97,14 @@ void TestScene::initialize(std::function<void(float, std::string)> progressCallb
     if (auto hourglassPtr = std::dynamic_pointer_cast<Item>(hourglassGameObject)) {
         hourglassPtr->addToWorld(this->world);
     }
+    if (auto stinkPtr = std::dynamic_pointer_cast<Item>(stinkItem)) {
+        stinkPtr->addToWorld(this->world);
+    }
     (dynamic_cast<HourGlassBomb*>(hourglassGameObject.get()))->initializeAOE();
     this->addGameObject(piggyGameObject);
     this->addGameObject(gunItemGameObject);
     this->addGameObject(hourglassGameObject);
+    this->addGameObject(stinkItem);
     this->terrain = std::make_shared<Terrain>(*this->sceneTerrainModel);
     this->terrain->initTerrain();
     this->terrain->addToWorld(world);

@@ -7,11 +7,15 @@
 #include "base/rigidbodyentity.hpp"
 #include "base/dialogue.hpp"
 #include "base/collisionshapetype.hpp"
-#include "base/player.hpp"
 #include "base/animation.hpp"
 #include "base/animator.hpp"
+#include "base/gameobject.hpp"
 #include <typeinfo>
 #include <cstdlib>
+#include <iostream>
+
+class HourGlassBomb;
+class Player;
 
 class Piggy : public GameObject {
     public:
@@ -67,9 +71,11 @@ class Piggy : public GameObject {
         glm::vec3 position;
         glm::mat4 piggyModelMatrix;
         Player* player;
+        HourGlassBomb* bomb;
         float lastPlayerSpottedTime;
         float initialPlayerSpottedTime;
         bool followingPlayer;
+        bool trackingBomb;
         bool canHurtPlayer;
         bool stunned;
         bool stunInitiated;

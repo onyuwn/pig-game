@@ -1,4 +1,6 @@
 #include "piggy.hpp"
+#include "hourglassbomb.hpp"
+#include "base/player.hpp"
 
 Piggy::Piggy(std::string name, glm::vec3 position, float scale,
     std::shared_ptr<Model> _pigModel, std::shared_ptr<Model> _shatteredPigModel,
@@ -27,6 +29,9 @@ Piggy::Piggy(std::string name, glm::vec3 position, float scale,
     this->selected = false;
     this->stunned = false;
     this->stunInitiated = false;
+    this->trackingBomb = false;
+    this->player = nullptr;
+    this->bomb = nullptr;
 }
 
 void Piggy::initialize() {
@@ -93,9 +98,14 @@ void Piggy::render(float deltaTime, glm::mat4 model, glm::mat4 view, glm::mat4 p
         this->isHit = false;
         hitTime = curTime;
     }
-    if(this->player != nullptr && this->health > 0) { // position override
+    if(this->player != nullptr || this->bomb != nullptr && this->health > 0) { // position override
+        glm::vec3 playerPos = glm::vec3(1.0);
+        if(this->player != nullptr) {
+            playerPos = this->player->getPlayerPos(); 
+        } else if(this->bomb != nullptr) {
+            playerPos = this->bomb->getPos(); 
+        }
         glm::vec3 piggyPos = this->getPos();
-        glm::vec3 playerPos = this->player->getPlayerPos(); 
         // TODO: SET 4 TO GROUND HEIGHT??
         glm::vec3 direction = glm::normalize(glm::vec3(piggyPos.x, 4.0, piggyPos.z) - glm::vec3(playerPos.x, 4.0, playerPos.z));
         glm::vec3 newForward = direction; // duh
@@ -308,14 +318,31 @@ bool Piggy::playerSpotted(glm::vec3 forward) {
     btCollisionWorld::ClosestRayResultCallback RayCallback(btVector3(outOrigin.x, outOrigin.y, outOrigin.z), btVector3(outEnd.x, outEnd.y, outEnd.z));
     this->physWorld->rayTest(btVector3(outOrigin.x, outOrigin.y, outOrigin.z), btVector3(outEnd.x, outEnd.y, outEnd.z), RayCallback);
     //printf("forward: %f, %f, %f spotted? %s\n", forward.x, forward.y, forward.z, RayCallback.hasHit() ? "true": "false");
-    if(RayCallback.hasHit() && followingPlayer == false) {
-        this->player = (Player*)(RayCallback.m_collisionObject->getUserPointer());
-        if(this->player != nullptr && this->player->name == "player") {
-            bool isAlive = player->isAlive(); 
-            this->player->notifySpotted();  
-            followingPlayer = true;
-        } else {
+    if(RayCallback.hasHit()) {
+        GameObject* hitObject = (GameObject*)(RayCallback.m_collisionObject->getUserPointer());
+        Player* isPlayer = dynamic_cast<Player*>(hitObject);
+        HourGlassBomb* isBomb = dynamic_cast<HourGlassBomb*>(hitObject);
+
+        if(isBomb != nullptr && isBomb->isBombActive()) {
+            this->bomb = isBomb;
+            this->trackingBomb = true;
+            this->followingPlayer = false;
             this->player = nullptr;
+        }
+
+        if(isPlayer != nullptr) {
+            this->player = (Player*)hitObject;
+            bool isAlive = player->isAlive(); 
+            if(this->followingPlayer == false && isAlive) {
+                this->player->notifySpotted(this->name);
+                this->followingPlayer = true;
+            } else if(!isAlive) {
+                followingPlayer = false;
+            }
+        }
+        
+        if(isBomb == nullptr) {
+            this->bomb = nullptr;
         }
     }
     return RayCallback.hasHit();

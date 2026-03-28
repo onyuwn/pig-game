@@ -164,3 +164,7 @@ void HourGlassBomb::updateAOEPos() {
     currentTransform.setOrigin(btVector3(curPos.x, curPos.y, curPos.z));
     this->areaOfEffect->setWorldTransform(currentTransform);
 }
+
+bool HourGlassBomb::isBombActive() {
+    return this->bombActive && !bombExploded;
+}

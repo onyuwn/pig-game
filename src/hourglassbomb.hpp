@@ -18,6 +18,7 @@ class HourGlassBomb : public Item {
             float curTime = 0.0, glm::vec3 sceneLightPos = glm::vec3(0.0)) override;
         void initializeAOE();
         void updateAOEPos();
+        bool isBombActive();
     private:
         btSphereShape* bombAreaOfEffectShape;
         btGhostObject* areaOfEffect;

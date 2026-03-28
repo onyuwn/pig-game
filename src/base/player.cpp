@@ -477,15 +477,23 @@ glm::vec3 Player::getPlayerRightHandPos() {
 glm::mat4 Player::getPlayerRightHandTransform() {
     glm::mat4 model = glm::translate(glm::mat4(1.0), getPlayerPos()); // ARM ADJUST
     //model = glm::scale(model, glm::vec3(.25, .25, .25));
-    model *= glm::mat4(getPlayerRotationMatrix());
-    return model * glm::translate(glm::mat4(1.0), (glm::vec3)this->animator->getGlobalBoneTransform("Bone.003.R")[3]) * glm::translate(glm::mat4(1.0), glm::vec3(-0.75, 0.25, 1.25));
-    //return model * glm::translate(glm::mat4(1.0), (glm::vec3)this->animator->getGlobalBoneTransform("Bone.003.L")[3]) * glm::mat4(getPlayerRotationMatrix()) * glm::translate(glm::mat4(1.0), glm::vec3(-0.25, 0.0, 1.25));
+    //model *= glm::mat4(getPlayerRotationMatrix());
+    //return model * glm::translate(glm::mat4(1.0), (glm::vec3)this->animator->getGlobalBoneTransform("Bone.003.R")[3]) * glm::translate(glm::mat4(1.0), glm::vec3(-0.75, 0.25, 1.25));
+    glm::mat4 bonePos = this->animator->getGlobalBoneTransform("Bone.003.R");
+    return model *
+        glm::mat4(getPlayerRotationMatrix()) *
+        bonePos *
+        glm::translate(glm::mat4(1.0), glm::vec3(-0.25, 0.0, 1.25));
 }
 
 glm::mat4 Player::getPlayerLeftHandTransform() {
     glm::mat4 model = glm::translate(glm::mat4(1.0), getPlayerPos()); // ARM ADJUST
-    model *= glm::mat4(getPlayerRotationMatrix());
-    return model * glm::translate(glm::mat4(1.0), (glm::vec3)this->animator->getGlobalBoneTransform("Bone.003.L")[3]) * glm::translate(glm::mat4(1.0), glm::vec3(.5, 0.25, 1.25));
+    // model *= glm::mat4(getPlayerRotationMatrix());
+    // return model * glm::translate(glm::mat4(1.0), (glm::vec3)this->animator->getGlobalBoneTransform("Bone.003.L")[3]) * glm::translate(glm::mat4(1.0), glm::vec3(.5, 0.25, 1.25));
+    glm::mat4 bonePos = this->animator->getGlobalBoneTransform("Bone.003.L");
+    return model *
+        glm::mat4(getPlayerRotationMatrix()) *
+        bonePos;
 }
 
 glm::vec3 Player::getPlayerLeftHandPos() {
@@ -497,7 +505,7 @@ glm::mat3 Player::getPlayerRotationMatrix() {
 }
 
 bool Player::isAlive() {
-    return this->getPlayerPos().y > -20.0f;
+    return this->health > 0;
 }
 
 bool Player::isControlDisabled() {
@@ -550,7 +558,7 @@ GameObjectInteractionType Player::getInteraction() {
     return HIT;
 }
 
-void Player::notifySpotted() {
+void Player::notifySpotted(std::string name) {
     this->uiCallback.addImagePanel(64, 64, this->aggroCount * 64, 0, "resources/eyetest1.png");
     this->aggroCount++;
 }

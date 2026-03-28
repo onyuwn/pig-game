@@ -19,7 +19,7 @@
 #include "animator.hpp"
 #include "item.hpp"
 
-class Player : GameObject {
+class Player : public GameObject {
     public:
         btCollisionShape* playerCollisionShape;
         btRigidBody* playerRigidBody;
@@ -56,12 +56,12 @@ class Player : GameObject {
         glm::vec3 getRight();
         glm::vec3 rotation;
         std::string name;
-        void notifySpotted();
+        void notifySpotted(std::string name);
         std::shared_ptr<Animator> animator;
-        glm::vec3 Player::getPlayerRightHandPos();
-        glm::mat4 Player:: getPlayerRightHandTransform();
-        glm::mat4 Player:: getPlayerLeftHandTransform();
-        glm::vec3 Player::getPlayerLeftHandPos();
+        glm::vec3 getPlayerRightHandPos();
+        glm::mat4 getPlayerRightHandTransform();
+        glm::mat4 getPlayerLeftHandTransform();
+        glm::vec3 getPlayerLeftHandPos();
         void setSelected(bool selected);
     private:
         void shove(float curTime);

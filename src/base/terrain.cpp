@@ -71,7 +71,7 @@ void Terrain::render(Shader &shader, glm::mat4 model, int shells) {
         shader.setFloat("shellCount", shells);
         shader.setVec3("shellColor", glm::vec3(0.125, 1.0, 0.0));
         shader.setFloat("shellLength", 3.0);
-        shader.setFloat("density", 500.0);
+        shader.setFloat("density", 750.0);
         shader.setFloat("noiseMin", -1000.0);
         shader.setFloat("noiseMax", 180.0);
         shader.setFloat("shellAttenuation", 0.5);

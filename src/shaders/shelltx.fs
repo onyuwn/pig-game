@@ -27,10 +27,10 @@ float hash(vec2 x) {
 
 void main() {
     vec3 ambient = 1.0 * lightColor;
-
+    vec4 leafColor = texture(texture_diffuse1, TexCoords);
+    leafColor += vec4(0.0, .25, 0.0, 1.0);
     if(shellIndex <= shellCount / 2.0) {
-        vec4 leafColor = texture(texture_diffuse1, TexCoords);
-        FragColor = vec4(shellColor, 1.0);
+        FragColor = vec4(shellColor * leafColor.xyz, 1.0);
     } else {
         float d = distance(vec2(fragPos.x, fragPos.z), vec2(lightPos.x, lightPos.z));
         // if(d > 75.0) {
@@ -41,7 +41,6 @@ void main() {
         float diff = max(dot(norm, lightDir), 0.0);
         vec2 newUv = TexCoords * density;
         vec2 _uv = fract(TexCoords * density) - 0.5;
-        vec4 leafColor = texture(texture_diffuse1, TexCoords);
         float rand = mix(noiseMin, noiseMax, hash(floor(TexCoords * density)));
         if (noiseMin != 0.0 && noiseMax != 0.0 && rand < .75 && shellIndex > 0) discard;
         // FragColor = vec4(
@@ -49,7 +48,7 @@ void main() {
         //     leafColor.a
         // );
         FragColor = vec4(
-            vec3(((1.0 - (pow(shellHeight, shellAttenuation))) + .5) * shellColor),
+            vec3(((1.5 - (pow(shellHeight - .25, shellAttenuation))) * shellColor * leafColor.xyz)),
             leafColor.a
         );
     }

@@ -7,6 +7,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "btBulletCollisionCommon.h"
 #include "btBulletDynamicsCommon.h"
+#include "billboardentity.hpp"
 
 class Terrain {
     public:
@@ -14,13 +15,14 @@ class Terrain {
         btRigidBody* terrainRigidBody;
 
         Terrain(Model &terrainModel, btVector3 defaultPos = btVector3(0,0,0));
-        void render(Shader &shader, glm::mat4 model = glm::mat4(1.0));
+        void render(Shader &shader, glm::mat4 model = glm::mat4(1.0), int shells = 0);
         void initTerrain();
         void addToWorld(btDiscreteDynamicsWorld * world);
     private:
         Model &terrainModel;
         btVector3 position;
         bool initialized;
+
 };
 
 #endif

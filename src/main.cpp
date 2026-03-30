@@ -14,6 +14,7 @@
 #include "base/model.hpp"
 #include "base/uimaster.hpp"
 #include "testscene.hpp"
+#include "stinkscene.hpp"
 #include "base/uitextelement.hpp"
 #include "base/uispriteanim.hpp"
 #include "base/progressbar.hpp"
@@ -107,8 +108,11 @@ int main()
     ui.addTextElement(crosshair);
     float progress = 0.0f;
     TestScene *scene1 = new TestScene("scene1", camera, ui);
+    StinkScene *stinkScene = new StinkScene("stinkScene", camera, ui);
     sceneMap.insert({"main", scene1});
-    curScene = sceneMap["main"];
+    sceneMap.insert({"stinkScene", stinkScene});
+    //curScene = sceneMap["main"];
+    curScene = sceneMap["stinkScene"];
 
     ProgressBar progressBar1;
     bool closeCallback;

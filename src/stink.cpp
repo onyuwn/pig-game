@@ -8,6 +8,7 @@ StinkItem::StinkItem(std::string name, glm::vec3 position, std::shared_ptr<Model
     this->range = 100;
     this->damage = 10;
     this->shootingSpeed = .5;
+    this->scale = scale;
 }
 
 void StinkItem::use() {

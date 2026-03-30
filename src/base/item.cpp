@@ -26,7 +26,7 @@ void Item::addToWorld(btDiscreteDynamicsWorld *world) {
 void Item::initialize() {
     this->initialized = true;
     this->itemRigidBody = new RigidBodyEntity(
-        this->itemModel, btVector3(this->position.x,this->position.y,this->position.z), BOX, 0.5f, btVector3(1.0, 1.0, 1.0), this->scale
+        this->itemModel, btVector3(this->position.x,this->position.y,this->position.z), SPHERE, 0.5f, btVector3(1.0, 1.0, 1.0), this->scale
     );
     this->itemRigidBody->initialize(glm::mat4(1.0));
 }
@@ -78,6 +78,7 @@ void Item::render(float deltaTime, glm::mat4 model,
         itemModelMatrix = itemRigidBody->render(itemModelMatrix, true);
     } else {
         itemModelMatrix = itemRigidBody->render(itemModelMatrix, false);
+        //itemModelMatrix = glm::translate(itemModelMatrix, this->position);
         itemModelMatrix = glm::scale(itemModelMatrix, glm::vec3(this->scale));
     }
     this->itemShader->setMat4("model", itemModelMatrix);

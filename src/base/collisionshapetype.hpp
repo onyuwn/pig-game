@@ -3,7 +3,8 @@
 
 enum CollisionShapeType {
     BOX,
-    MESH
+    MESH,
+    SPHERE
 };
 
 #endif

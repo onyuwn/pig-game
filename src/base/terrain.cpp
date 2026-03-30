@@ -49,6 +49,7 @@ void Terrain::initTerrain() {
     btRigidBody *rigidBody = new btRigidBody(rigidBodyCI);
     this->terrainRigidBody = rigidBody;
     this->terrainRigidBody->setFriction(.5);
+
     this->initialized = true;
 }
 
@@ -59,12 +60,28 @@ void Terrain::addToWorld(btDiscreteDynamicsWorld * world) {
     }
 }
 
-void Terrain::render(Shader &shader, glm::mat4 model) {
-    shader.use();
+void Terrain::render(Shader &shader, glm::mat4 model, int shells) {
     btTransform curTransform = this->terrainRigidBody->getWorldTransform();
     btVector3 curPos = curTransform.getOrigin();
     btQuaternion curRot = curTransform.getRotation();
     model = glm::translate(model, glm::vec3(position.x(), position.y(), position.z()));
-    shader.setMat4("model", model);
-    this->terrainModel.draw(shader);
+    if(shells > 0) {
+        shader.use();
+        shader.setMat4("model", model);
+        shader.setFloat("shellCount", shells);
+        shader.setVec3("shellColor", glm::vec3(0.125, 1.0, 0.0));
+        shader.setFloat("shellLength", 3.0);
+        shader.setFloat("density", 500.0);
+        shader.setFloat("noiseMin", -1000.0);
+        shader.setFloat("noiseMax", 180.0);
+        shader.setFloat("shellAttenuation", 0.5);
+        for(int i = 0; i < shells; i++) {
+            shader.setInt("shellIndex", i);
+            this->terrainModel.draw(shader);
+        }
+    } else {
+        shader.use();
+        shader.setMat4("model", model);
+        this->terrainModel.draw(shader);
+    }
 }

@@ -64,7 +64,33 @@ void RigidBodyEntity::initialize(glm::mat4 model) {
         btVector3 halfExtents(size.x * 0.5f, size.y * 0.5f, size.z * 0.5f);
         btBoxShape* boxShape = new btBoxShape(halfExtents);
         this->entityCollisionShape = boxShape;
-    }else if(this->collisionShapeType == BOX && this->entityMesh != nullptr) {
+    } else if(this->collisionShapeType == SPHERE && this->entityModel != nullptr) {
+        glm::vec3 minVertex(FLT_MAX, FLT_MAX, FLT_MAX);
+        glm::vec3 maxVertex(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+
+        std::vector<Mesh> entityMeshes = this->entityModel->getMeshes();  // Get mesh data
+        // Iterate through all vertices in the mesh to calculate the bounding box
+        for (int h = 0; h < entityMeshes.size(); h++) {
+            Mesh terrainMesh = entityMeshes[h];
+            
+            for (int i = 0; i < terrainMesh.vertices.size(); i++) {
+                glm::vec3 vertex = terrainMesh.vertices[i].Position * this->scale;
+                // Update the bounding box limits
+                minVertex = glm::min(minVertex, vertex);
+                maxVertex = glm::max(maxVertex, vertex);
+            }
+        }
+
+        meshOrigin = (minVertex + maxVertex) * 0.5f;
+        //printf("meshorigin: %f, %f, %f\n", meshOrigin.x, meshOrigin.y, meshOrigin.z);
+        // Calculate the size (width, height, depth) of the bounding box
+        glm::vec3 size = maxVertex - minVertex;
+
+        // Create the btBoxShape using the half-extents
+        btVector3 halfExtents(size.x * 0.5f, size.y * 0.5f, size.z * 0.5f);
+        btSphereShape* sphereShape = new btSphereShape(size.y * .5f);
+        this->entityCollisionShape = sphereShape;
+    } else if(this->collisionShapeType == BOX && this->entityMesh != nullptr) {
         glm::vec3 minVertex(FLT_MAX, FLT_MAX, FLT_MAX);
         glm::vec3 maxVertex(-FLT_MAX, -FLT_MAX, -FLT_MAX);
 

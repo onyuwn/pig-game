@@ -98,6 +98,8 @@ void Player::render(float curTime, float deltaTime, glm::vec2 windowDims) {
     for (int i = 0; i < transforms.size(); ++i) {
         this->playerShader->setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
     }
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     this->playerModel->draw(*this->playerShader, curTime);
 }
 
@@ -478,7 +480,7 @@ glm::mat4 Player::getPlayerRightHandTransform() {
     glm::mat4 model = glm::translate(glm::mat4(1.0), getPlayerPos()); // ARM ADJUST
     //model = glm::scale(model, glm::vec3(.25, .25, .25));
     model *= glm::mat4(getPlayerRotationMatrix());
-    return model * glm::translate(glm::mat4(1.0), (glm::vec3)this->animator->getGlobalBoneTransform("Bone.003.R")[3]) * glm::translate(glm::mat4(1.0), glm::vec3(-0.75, 0.25, 1.25));
+    return model * glm::translate(glm::mat4(1.0), (glm::vec3)this->animator->getGlobalBoneTransform("Bone.003.R")[3]) * glm::translate(glm::mat4(1.0), glm::vec3(-0.75, 0.25, -0.5));
     //return model * glm::translate(glm::mat4(1.0), (glm::vec3)this->animator->getGlobalBoneTransform("Bone.003.L")[3]) * glm::mat4(getPlayerRotationMatrix()) * glm::translate(glm::mat4(1.0), glm::vec3(-0.25, 0.0, 1.25));
 }
 

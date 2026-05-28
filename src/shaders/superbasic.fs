@@ -26,5 +26,5 @@ void main()
     // vec3 diffuse = diff * lightColor;
     // vec3 result = (ambient + diffuse) * objectColor.xyz;
 
-    FragColor = objectColor;
+    FragColor = objectColor * vec4(1.0, 1.0, 1.0, .35);
 }

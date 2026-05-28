@@ -88,7 +88,7 @@ void HourGlassBomb::render(float deltaTime, glm::mat4 model,
     } else {
         itemModelMatrix = itemRigidBody->render(itemModelMatrix, false);
         if(bombActive) {
-            itemModelMatrix = glm::scale(itemModelMatrix, glm::vec3(this->scale * ((curTime - this->explosionStart) * .25) + 1.0f)); 
+            itemModelMatrix = glm::scale(itemModelMatrix, glm::vec3(this->scale * ((curTime - this->explosionStart) * .5) + 1.0f)); 
         } else {
             itemModelMatrix = glm::scale(itemModelMatrix, glm::vec3(this->scale));
         }

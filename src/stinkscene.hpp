@@ -8,6 +8,7 @@
 #include "base/item.hpp"
 #include "stink.hpp"
 #include "piggy.hpp"
+#include "hourglassbomb.hpp"
 
 class StinkScene : public Scene {
       public:
@@ -16,6 +17,9 @@ class StinkScene : public Scene {
         void initialize(std::function<void(float, std::string)> progressCallback);
         void addGameObject(std::shared_ptr<GameObject> gameObject);
         void updateWindowSize(glm::vec2 windowDims);
+        void spawnNewPig(int pigIdx);
+        void spawnNewStink(int stinkIdx
+        );
     private:
         std::vector<std::shared_ptr<GameObject>> gameObjects;
         std::shared_ptr<PostProcessor> postProcessor;
@@ -29,14 +33,19 @@ class StinkScene : public Scene {
         std::shared_ptr<Player> player;
         std::string name;
         std::shared_ptr<Model> stinkHeadModel;
+        std::shared_ptr<Model> stinkHead2Model;
         std::shared_ptr<Shader> outlineShader;
         BillboardEntity* grassBillboard;
+        std::shared_ptr<Model> piggyModel;
+        std::shared_ptr<Model> shatteredPigModel1;
         Camera &camera;
         UIMaster &ui;
         bool initialized;
         bool paused;
         bool physDebugOn;
         std::shared_ptr<Skybox> skybox;
+            float lastPigSpawnTime;
+        float pigSpawnFrequency;
 };
 
 #endif

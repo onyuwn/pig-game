@@ -66,7 +66,7 @@ void Terrain::render(Shader &shader, glm::mat4 model, int shells) {
     btQuaternion curRot = curTransform.getRotation();
     model = glm::translate(model, glm::vec3(position.x(), position.y(), position.z()));
     if(shells > 0) {
-        shader.use();
+        //shader.use();
         shader.setMat4("model", model);
         shader.setFloat("shellCount", shells);
         shader.setVec3("shellColor", glm::vec3(0.125, 1.0, 0.0));
@@ -80,7 +80,7 @@ void Terrain::render(Shader &shader, glm::mat4 model, int shells) {
             this->terrainModel.draw(shader);
         }
     } else {
-        shader.use();
+        //shader.use();
         shader.setMat4("model", model);
         this->terrainModel.draw(shader);
     }
